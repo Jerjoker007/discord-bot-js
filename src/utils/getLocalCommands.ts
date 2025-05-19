@@ -1,4 +1,4 @@
-module.exports = (exceptions = []) => {
+module.exports = (exceptions: any = []) => {
     let localCommands = [];
 
     const commandCategories = getAllFiles(
