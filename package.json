@@ -1,0 +1,30 @@
+{
+  "name": "discord-bot-ts",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jerjoker007/discord-bot-ts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jerjoker007/discord-bot-ts/issues"
+  },
+  "homepage": "https://github.com/Jerjoker007/discord-bot-ts#readme",
+  "description": "",
+  "dependencies": {
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.19",
+    "tsx": "^4.19.4"
+  }
+}
