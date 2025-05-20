@@ -1,5 +1,5 @@
 "use strict";
-const {  Ravi, Interaction, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
+const { Ravi, Interaction, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
 module.exports = {
     /**
      *
