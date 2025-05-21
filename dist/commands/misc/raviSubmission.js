@@ -1,34 +1,70 @@
 "use strict";
-const { Ravi, Interaction, ApplicationCommandOptionType, PermissionFlagsBits } = require('discord.js');
+const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, InteractionResponse, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
 module.exports = {
     /**
      *
-     * @param {Ravi} ravi
+     * @param {Client} ravi
      * @param {Interaction} interaction
      */
     callback: async (ravi, interaction) => {
+
+        const confirmChannel = '1374472832532091071';
+
         await interaction.reply({
+            content: 'Your bounty is submited',
+            files: [
+                `${interaction.options.get('image').attachment.url}`
+            ]
+        });
+
+        await ravi.channels.cache.get(confirmChannel).send({
             embeds: [{
                 author: {
-                name: "Ravi"
+                name: `${interaction.member.user.username}`,
+                icon_url: `${interaction.member.user.avatarURL()}`
                 },
-                title: "Raviente's Submission",
-                description: `<@${interaction.member.id}> ${interaction.options.get('batch').value}`,
-                //image: {
-                //url: "imageUrl"
-                //},
+                title: "Raviente's Bounty Submission",
+                description: ``,
+                fields: [
+                    {
+                        name: 'User',
+                        value: `<@${interaction.member.id}>`,
+                        inline: true,
+                    },
+                    {
+                        name: `Batch`,
+                        value: `${interaction.options.get('batch').value}`,
+                        inline: true,
+                    },
+                ],
+                image: {
+                url: `${interaction.options.get('image').attachment.url}`
+                },
                 thumbnail: {
-                url: "https://dan.onl/images/emptysong.jpg"
+                url: `${interaction.guild.members.me.user.avatarURL()}`
                 },
-                color: "2",
+                color: "15844367",
                 footer: {
-                text: "Example Footer",
-                icon_url: "https://slate.dan.onl/slate.png"
+                text: `${interaction.guild.members.me.user.username}`,
+                icon_url: `${interaction.guild.members.me.user.avatarURL()}`
                 },
-                timestamp: "2025-05-20T10:20:00"
-            }]
+                timestamp: new Date().toISOString(),
+            }],
+            components: [
+                new ActionRowBuilder().setComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`confirm|userId:${interaction.member.id}`)
+                        .setLabel('Confirm')
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId('reject')
+                        .setLabel('Reject')
+                        .setStyle(ButtonStyle.Danger)
+                ),
+            ]
         });
     },
+
     name: 'ravi-submit',
     description: `Submission for the Raviente's raid event`,
     // devOnly: Boolean,
