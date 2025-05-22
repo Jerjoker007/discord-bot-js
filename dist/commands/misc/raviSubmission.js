@@ -1,6 +1,7 @@
 "use strict";
 const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, InteractionResponse, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
 const { encodeCustomId } = require('../../utils/customId');
+const { getBotOwnerInfos } = require('../../utils/ownerInfos');
 const submissionTracker = require('../../utils/submissionTracker');
 module.exports = {
     /**
@@ -13,12 +14,7 @@ module.exports = {
         const confirmChannel = '1374472832532091071';
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
 
-        await interaction.client.application.fetch();
-
-        let ownerAvatarUrl;
-        const owner = interaction.client.application.owner;
-
-        ownerAvatarUrl = owner.displayAvatarURL({ dynamic: true });
+        const ownerInfos = await getBotOwnerInfos(ravi);
 
         //Check if the user already submitted a bounty
         if (submissionTracker.hasSubmitted(interaction.member.id)) {
@@ -40,10 +36,10 @@ module.exports = {
                             value: `<@${interaction.member.id}> has most likely already sent a submission.`,
                         },
                     ],
-                    color: "15844367",
+                    color: 15844367,
                     footer: {
-                    text: `You can consult this to jerjoker007`,
-                    icon_url: `${ownerAvatarUrl}`
+                    text: `You can consult this to ${ ownerInfos.username}7`,
+                    icon_url: `${ ownerInfos.avatarURL }`
                     },
                     timestamp: new Date().toISOString(),
                 }],
@@ -75,11 +71,7 @@ module.exports = {
                 image: {
                 url: `${interaction.options.get('image').attachment.url}`
                 },
-                color: "15844367",
-                footer: {
-                text: `${interaction.guild.members.me.user.username}`,
-                icon_url: `${interaction.guild.members.me.user.avatarURL()}`
-                },
+                color: 15844367,
                 timestamp: new Date().toISOString(),
             }],
             components: [
