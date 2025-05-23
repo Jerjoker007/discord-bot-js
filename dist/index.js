@@ -2,7 +2,7 @@
 require('dotenv').config();
 const { Client, IntentsBitField } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
-const ravi = new Client({
+const client = new Client({
     intents: [
         IntentsBitField.Flags.Guilds,
         IntentsBitField.Flags.GuildMembers,
@@ -10,5 +10,5 @@ const ravi = new Client({
         IntentsBitField.Flags.MessageContent,
     ],
 });
-eventHandler(ravi);
-ravi.login(process.env.DISCORD_BOT_TOKEN);
+eventHandler(client);
+client.login(process.env.DISCORD_BOT_TOKEN);

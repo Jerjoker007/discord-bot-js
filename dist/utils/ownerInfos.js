@@ -2,11 +2,11 @@ const { User } = require('discord.js');
 let cachedOwnerInfo = null;
 module.exports = {
 
-    async getBotOwnerInfos(ravi) {
+    async getBotOwnerInfos(client) {
         if (cachedOwnerInfo) return cachedOwnerInfo;
 
-        await ravi.application.fetch();
-        const owner = ravi.application.owner;
+        await client.application.fetch();
+        const owner = client.application.owner;
 
 
         if (!(owner instanceof User)) throw new Error('Unable to determine bot owner.');

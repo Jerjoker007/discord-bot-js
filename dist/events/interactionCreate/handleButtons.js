@@ -5,10 +5,10 @@ const { decodeCustomId } = require('../../utils/customId');
 const submissionTracker = require('../../utils/submissionTracker');
 /**
  * 
- * @param {Client} ravi 
+ * @param {Client} client 
  * @param {Interaction} interaction 
  */
-module.exports = async (ravi, interaction) => {
+module.exports = async (client, interaction) => {
     if (!interaction.isButton()) return;
 
     const submitChannel = '1374042127121518785';
@@ -34,7 +34,7 @@ module.exports = async (ravi, interaction) => {
                     components 
                 });
 
-                await ravi.channels.cache.get(submitChannel).send(`<@${params.userId}> Your submission was accepted by ${interaction.member.user.username} and the rewards has been sent.`);
+                await client.channels.cache.get(submitChannel).send(`<@${params.userId}> Your submission was accepted by ${interaction.member.user.username} and the rewards has been sent.`);
 
                 await submissionTracker.unmarkSubmitted(params.userId);
             }
@@ -51,7 +51,7 @@ module.exports = async (ravi, interaction) => {
                 components 
             });
 
-            await ravi.channels.cache.get(submitChannel).send(`<@${params.userId}> Your submission was rejected by ${interaction.member.user.username}.`);
+            await client.channels.cache.get(submitChannel).send(`<@${params.userId}> Your submission was rejected by ${interaction.member.user.username}.`);
 
             await submissionTracker.unmarkSubmitted(params.userId);
         }

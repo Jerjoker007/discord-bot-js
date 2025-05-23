@@ -1,12 +1,12 @@
 "use strict";
-module.exports = async (ravi, guildId) => {
+module.exports = async (client, guildId) => {
     let applicationCommands;
     if (guildId) {
-        const guild = await ravi.guilds.fetch(guildId);
+        const guild = await client.guilds.fetch(guildId);
         applicationCommands = guild.commands;
     }
     else {
-        applicationCommands = await ravi.application.commands;
+        applicationCommands = await client.application.commands;
     }
     await applicationCommands.fetch();
     return applicationCommands;

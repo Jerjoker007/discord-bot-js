@@ -3,19 +3,18 @@ const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, Interact
 const { encodeCustomId } = require('../../utils/customId');
 const { getBotOwnerInfos } = require('../../utils/ownerInfos');
 const submissionTracker = require('../../utils/submissionTracker');
-const { validateHeaderName } = require('http');
 module.exports = {
     /**
      *
-     * @param {Client} ravi
+     * @param {Client} client
      * @param {Interaction} interaction
      */
-    callback: async (ravi, interaction) => {
+    callback: async (client, interaction) => {
 
         const confirmChannel = '1374472832532091071';
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
 
-        const ownerInfos = await getBotOwnerInfos(ravi);
+        const ownerInfos = await getBotOwnerInfos(client);
 
         //Check if the user already submitted a bounty
         if (await submissionTracker.hasSubmitted(interaction.member.id)) {
@@ -49,7 +48,7 @@ module.exports = {
         }
 
         //Send an interaction to the moderation team
-        await ravi.channels.cache.get(confirmChannel).send({
+        await client.channels.cache.get(confirmChannel).send({
             embeds: [{
                 author: {
                 name: `${interaction.member.user.username}`,

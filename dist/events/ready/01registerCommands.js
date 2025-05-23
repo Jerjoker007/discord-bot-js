@@ -3,11 +3,11 @@ const { testServer } = require('../../../config.json');
 const getApplicationCommands = require('../../utils/getApplicationCommands');
 const getLocalCommands = require('../../utils/getLocalCommands');
 const areCommandsDifferent = require('../../utils/areCommandsDifferent');
-module.exports = async (ravi) => {
+module.exports = async (client) => {
     const localCommands = getLocalCommands();
     try {
         const localCommands = getLocalCommands();
-        const applicationCommands = await getApplicationCommands(ravi, testServer);
+        const applicationCommands = await getApplicationCommands(client, testServer);
         for (const localCommand of localCommands) {
             const { name, description, options } = localCommand;
             const existingCommand = await applicationCommands.cache.find((cmd) => cmd.name === name);
