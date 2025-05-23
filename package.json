@@ -20,6 +20,7 @@
   "homepage": "https://github.com/Jerjoker007/discord-bot-ts#readme",
   "description": "",
   "dependencies": {
+    "async-mutex": "^0.5.0",
     "discord.js": "^14.19.3",
     "dotenv": "^16.5.0"
   },

@@ -1,5 +1,5 @@
 "use strict";
-const { Client, Interaction, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, Interaction, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const { devs } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
 const submissionTracker = require('../../utils/submissionTracker');
@@ -20,7 +20,7 @@ module.exports = async (ravi, interaction) => {
             if (params.userId === interaction.member.id) {
                 interaction.reply({
                     content: 'You cannot authorize your own submission.',
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral,
                 });
             } else {
                 const components = interaction.message.components.map(row => {

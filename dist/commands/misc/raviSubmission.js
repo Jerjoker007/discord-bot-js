@@ -3,6 +3,7 @@ const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, Interact
 const { encodeCustomId } = require('../../utils/customId');
 const { getBotOwnerInfos } = require('../../utils/ownerInfos');
 const submissionTracker = require('../../utils/submissionTracker');
+const { validateHeaderName } = require('http');
 module.exports = {
     /**
      *
@@ -17,7 +18,7 @@ module.exports = {
         const ownerInfos = await getBotOwnerInfos(ravi);
 
         //Check if the user already submitted a bounty
-        if (submissionTracker.hasSubmitted(interaction.member.id)) {
+        if (await submissionTracker.hasSubmitted(interaction.member.id)) {
             await interaction.reply({
                 embeds: [{
                     author: {
@@ -47,7 +48,7 @@ module.exports = {
             return;
         }
 
-        //Send an interaction to the validation team
+        //Send an interaction to the moderation team
         await ravi.channels.cache.get(confirmChannel).send({
             embeds: [{
                 author: {
@@ -60,6 +61,11 @@ module.exports = {
                     {
                         name: 'User',
                         value: `<@${interaction.member.id}>`,
+                        inline: true,
+                    },
+                    {
+                        name: 'In-game Name',
+                        value: `${interaction.options.get('in-game_name').value}`,
                         inline: true,
                     },
                     {
@@ -126,6 +132,12 @@ module.exports = {
             name: 'image',
             description: 'Screenshot of phase 4 or 5 to prove yourself.',
             type: ApplicationCommandOptionType.Attachment,
+            required: true,
+        },
+        {
+            name: 'in-game_name',
+            description: 'Your in-game name',
+            type: ApplicationCommandOptionType.String,
             required: true,
         },
         {
