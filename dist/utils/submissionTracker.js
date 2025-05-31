@@ -43,18 +43,52 @@ process.on('unhandledRejection', (error) => {
 
 module.exports = {
     hasSubmitted: async(userId) => {
-        return await mutex.runExclusive(() => !!cache[userId]);
-    },
-
-    markSubmitted: async(userId) => {
-        await mutex.runExclusive(() => {
-            cache[userId] = true;
+        return await mutex.runExclusive(() =>{
+            for (const batch in cache) {
+                if (cache[batch][userId]) {
+                    return true;
+                }
+            }
+            return false;
         });
     },
 
-    unmarkSubmitted: async(userId) => {
+    markSubmitted: async(userId, batch, channelId, messageId) => {
         await mutex.runExclusive(() => {
-            delete cache[userId];
+            if (!cache[batch]) cache[batch] = {};
+
+            cache[batch][userId] = {
+                channelId: `${channelId}`,
+                messageId: `${messageId}`
+            };
+        });
+    },
+
+    unmarkSubmitted: async(userId, batch) => {
+        await mutex.runExclusive(() => {
+            if (!cache[batch]) return;
+            delete cache[batch][userId];
+            if (Object.keys(cache[batch]).length === 0) delete cache[batch];
+        });
+    },
+
+    unmarkBatch: async(batch) => {
+        await mutex.runExclusive(() => {
+            delete cache[batch];
+        })
+    },
+
+    fetchMessages: async(batch) => {
+        return await mutex.runExclusive(() =>{
+            const messages = [];
+
+            if (!cache[batch]) return messages;
+
+            for (const userId in cache[batch]) {
+                const { channelId, messageId } = cache[batch][userId];
+                messages.push({ channelId, messageId });
+            }
+            return messages;
         });
     }
 };

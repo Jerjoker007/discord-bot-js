@@ -3,6 +3,7 @@ const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, Interact
 const { encodeCustomId } = require('../../utils/customId');
 const { getBotOwnerInfos } = require('../../utils/ownerInfos');
 const submissionTracker = require('../../utils/submissionTracker');
+const { channel } = require('diagnostics_channel');
 module.exports = {
     /**
      *
@@ -11,11 +12,43 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        const confirmChannel = '1374472832532091071';
+        const reviewChannelId = '1374472832532091071';
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
 
         const ownerInfos = await getBotOwnerInfos(client);
 
+        if (!interaction.options.getAttachment('image').contentType?.startsWith('image/')) {
+            
+            await interaction.reply({
+                embeds: [{
+                    author: {
+                    name: `${interaction.member.user.username}`,
+                    icon_url: `${userAvatarUrl}`,
+                    },
+                    title: "🛑 Error Occured 🛑",
+                    description: `You need to send an image`,
+                    fields: [
+                        {
+                            name: `Command`,
+                            value: `ravi-submit`,
+                        },
+                        {
+                            name: 'Error message',
+                            value: `<@${interaction.member.id}> has most likely not sent an image.`,
+                        },
+                    ],
+                    color: 15844367,
+                    footer: {
+                    text: `You can consult this to ${ ownerInfos.username}7`,
+                    icon_url: `${ ownerInfos.avatarURL }`
+                    },
+                    timestamp: new Date().toISOString(),
+                 }],
+            });
+
+            return;
+        }
+        
         //Check if the user already submitted a bounty
         if (await submissionTracker.hasSubmitted(interaction.member.id)) {
             await interaction.reply({
@@ -48,7 +81,7 @@ module.exports = {
         }
 
         //Send an interaction to the moderation team
-        await client.channels.cache.get(confirmChannel).send({
+        const sentMessage = await client.channels.cache.get(reviewChannelId).send({
             embeds: [{
                 author: {
                 name: `${interaction.member.user.username}`,
@@ -62,14 +95,14 @@ module.exports = {
                         value: `<@${interaction.member.id}>`,
                         inline: true,
                     },
-                    {
-                        name: 'In-game Name',
-                        value: `${interaction.options.get('in-game_name').value}`,
-                        inline: true,
-                    },
+                    //{
+                    //    name: 'In-game Name',
+                    //    value: `${interaction.options.get('in-game_name').value}`,
+                    //    inline: true,
+                    //},
                     {
                         name: `Batch`,
-                        value: `${interaction.options.get('batch').value}`,
+                        value: `Batch ${interaction.options.get('batch').value}`,
                         inline: true,
                     },
                 ],
@@ -85,23 +118,10 @@ module.exports = {
                         .setCustomId(
                             `${encodeCustomId(
                                 'ravi',
-                                'confirm',
+                                'submission-reject',
                                 {
                                     userId: `${interaction.member.id}`,
-                                    batch: `${interaction.options.get('batch').value}`,
-                                }
-                            )}`
-                        )
-                        .setLabel('Confirm')
-                        .setStyle(ButtonStyle.Success),
-                    new ButtonBuilder()
-                        .setCustomId(
-                            `${encodeCustomId(
-                                'ravi',
-                                'reject',
-                                {
-                                    userId: `${interaction.member.id}`,
-                                    batch: `${interaction.options.get('batch').value}`,
+                                    batch: `batch-${interaction.options.get('batch').value}`,
                                 }
                             )}`)
                         .setLabel('Reject')
@@ -119,7 +139,8 @@ module.exports = {
         });
         
         //Save the users id to block future submission if not accepted
-        await submissionTracker.markSubmitted(interaction.member.id);
+        await submissionTracker.markSubmitted(interaction.member.id, `batch-${interaction.options.get('batch').value}`, sentMessage.channel.id, sentMessage.id);
+
     },
 
     name: 'ravi-submit',
@@ -134,31 +155,25 @@ module.exports = {
             required: true,
         },
         {
-            name: 'in-game_name',
-            description: 'Your in-game name',
-            type: ApplicationCommandOptionType.String,
-            required: true,
-        },
-        {
             name: 'batch',
             description: 'Which batch did you participated.',
             type: ApplicationCommandOptionType.String,
             choices: [
                 {
                     name: 'Batch 1',
-                    value: 'Batch 1',
+                    value: '1',
                 },
                 {
                     name: 'Batch 2',
-                    value: 'Batch2',
+                    value: '2',
                 },
                 {
                     name: 'Batch 3',
-                    value: 'Batch 3',
+                    value: '3',
                 },
                 {
                     name: 'Batch 4',
-                    value: 'Batch 4',
+                    value: '4',
                 },
             ],
             required: true,
