@@ -1,5 +1,5 @@
 "use strict";
-const { Client, Interaction, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const { Client, Interaction, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, Application } = require('discord.js');
 const { devs } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
 const submissionTracker = require('../../utils/submissionTracker');
@@ -46,8 +46,19 @@ module.exports = async (client, interaction) => {
                 let messages = await submissionTracker.fetchMessages(params.batch);
                 
                 for (const message of messages) {
+
                     const fetchedMessage = await client.channels.cache.get(message.channelId).messages.fetch(message.messageId);
-                    await fetchedMessage.edit({ components: [] })
+
+                    const fetchedMessageComponents = fetchedMessage.components.map(row => {
+                        return new ActionRowBuilder().setComponents(
+                            row.components.map(btn => ButtonBuilder.from(btn).setDisabled(true))
+                        )
+                    });
+                    
+                    await fetchedMessage.edit({
+                        content: '❌ This submission has been rejected.', 
+                        components: fetchedMessageComponents 
+                    });
                 }
 
                 await submissionTracker.unmarkBatch(params.batch);
@@ -59,7 +70,7 @@ module.exports = async (client, interaction) => {
                 });
 
                 await interaction.update({ 
-                    content: '❌ This submission has been rejected.',
+                    content: '❌ This batch has been rejected.',
                     components 
                 });
 
