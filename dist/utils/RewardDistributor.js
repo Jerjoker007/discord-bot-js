@@ -95,15 +95,17 @@ class RewardDistributor {
   async distributeItems(charIds, hex) {
     if (hex === undefined) return;
 
+    const dataBuffer = Buffer.from(hex, 'hex');
+
     const insertDistributionQuery = await this.db.query(
       `
         INSERT INTO distribution (character_id,data,type,bot,event_name,description)
-        SELECT * FROM UNNEST($1::int[], DECODE($2::string[], 'hex'), $3::int[], $4::bool[], $5::string[], $6::string[])
+        SELECT * FROM UNNEST($1::int[], $2::bytea[], $3::int[], $4::bool[], $5::string[], $6::string[])
         RETURNING id
       `,
       [
         charIds,
-        Array(charIds.length).fill(hex),
+        Array(charIds.length).fill(dataBuffer),
         Array(charIds.length).fill(1),
         Array(charIds.length).fill(true),
         Array(charIds.length).fill('Event BBQ25'),
