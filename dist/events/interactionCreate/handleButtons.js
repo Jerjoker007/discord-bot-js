@@ -19,7 +19,7 @@ module.exports = async (client, interaction) => {
         if (action === 'submission-reject') {
             try {
 
-                await submissionTracker.unmarkSubmitted(params.userId, params.batch);
+                await submissionTracker.unmarkSubmittedUser(params.userId, params.batch);
 
                 const components = interaction.message.components.map(row => {
                     return new ActionRowBuilder().addComponents(

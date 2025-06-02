@@ -42,7 +42,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 module.exports = {
-    hasSubmitted: async(userId) => {
+    hasUserSubmitted: async(userId) => {
         return await mutex.runExclusive(() =>{
             for (const batch in cache) {
                 if (cache[batch][userId]) {
@@ -53,7 +53,7 @@ module.exports = {
         });
     },
 
-    markSubmitted: async(userId, batch, channelId, messageId) => {
+    markSubmittedUser: async(userId, batch, channelId, messageId) => {
         await mutex.runExclusive(() => {
             if (!cache[batch]) cache[batch] = {};
 
@@ -64,7 +64,7 @@ module.exports = {
         });
     },
 
-    unmarkSubmitted: async(userId, batch) => {
+    unmarkSubmittedUser: async(userId, batch) => {
         await mutex.runExclusive(() => {
             if (!cache[batch]) return;
             delete cache[batch][userId];
