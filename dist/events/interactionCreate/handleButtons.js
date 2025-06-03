@@ -2,6 +2,9 @@
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, Application } = require('discord.js');
 const { devs } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
+const path = require('path');
+const userDataPath = path.resolve(__dirname, '../../data/submittedUsers.json');
+const rewardDataPath = path.resolve(__dirname, '../../data/raviRewards.json');
 const submissionTracker = require('../../utils/submissionTracker');
 const RewardDistributor = require('../../utils/RewardDistributor');
 /**
@@ -82,7 +85,7 @@ module.exports = async (client, interaction) => {
         }
 
         if (action === 'batch-confirm') {
-            const batchDistribution = new RewardDistributor('./dist/data/submittedUsers.json', './dist/data/raviRewards.json', client.db);
+            const batchDistribution = new RewardDistributor(userDataPath, rewardDataPath, client.db);
             try {
                 await batchDistribution.loadFiles();
                 await batchDistribution.distribute(params.batch);
