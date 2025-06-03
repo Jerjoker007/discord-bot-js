@@ -1,11 +1,6 @@
 "use strict";
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
-const { Pool } = require('pg');
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // adjust your connection settings
-});
 
 class RewardDistributor {
 
@@ -21,8 +16,10 @@ class RewardDistributor {
       try {
         const batchFile = await fs.readFile(path.resolve(this.batchPath), 'utf-8');
         const rewardFile = await fs.readFile(path.resolve(this.rewardPath), 'utf-8');
+
         this.batchData = JSON.parse(batchFile);
         this.rewardData = JSON.parse(rewardFile);
+
       } catch (err) {
         throw new Error('Error loading JSON files: ' + err.message);
       }
@@ -31,6 +28,11 @@ class RewardDistributor {
   getUserIds(batchKey) {
     if (!this.batchData || !this.batchData[batchKey]) return [];
     return Object.keys(this.batchData[batchKey]);
+  }
+
+  getCharacterIds(batchKey) {
+    if (!this.batchData || !this.batchData[batchKey]) return [];
+    return Object.values(this.batchData[batchKey]).map(entry => parseInt(entry.char_id));
   }
 
   getRewardData() {
@@ -99,8 +101,8 @@ class RewardDistributor {
 
     const insertDistributionQuery = await this.db.query(
       `
-        INSERT INTO distribution (character_id,data,type,bot,event_name,description)
-        SELECT * FROM UNNEST($1::int[], $2::bytea[], $3::int[], $4::bool[], $5::string[], $6::string[])
+        INSERT INTO distribution (char_id,data,type,bot,event_name,description)
+        SELECT * FROM UNNEST($1::int[], $2::bytea[], $3::int[], $4::bool[], $5::text[], $6::text[])
         RETURNING id
       `,
       [
@@ -145,11 +147,13 @@ class RewardDistributor {
   }
 
   async distribute(batchKey) {
+
     const userIds = this.getUserIds(batchKey);
-    const charIds = this.getCharacterIds(batchKey);
+    const characterIds = this.getCharacterIds(batchKey);
     const rewards = this.getRewardData();
-    if (!userIds.length || !rewards) {
-      throw new Error('Missing user or reward data.');
+
+    if (!userIds.length || !rewards || !characterIds.length) {
+      throw new Error('Missing user, reward data or character.');
     }
 
     console.log("Distributing to users:", userIds);
@@ -159,12 +163,15 @@ class RewardDistributor {
     try {
       const hex = this.toHexString();
       await dbTransaction.query('BEGIN');
-      this.distributeItems(charIds, hex);
+      this.distributeItems(characterIds, hex);
 
       await dbTransaction.query('COMMIT');
+
     } catch (err) {
+
       await dbTransaction.query('ROLLBACK');
       throw err;
+      
     } finally {
       dbTransaction.release();
     }

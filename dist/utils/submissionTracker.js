@@ -53,11 +53,16 @@ module.exports = {
         });
     },
 
-    markSubmittedUser: async(userId, batch, channelId, messageId) => {
+    markSubmittedUser: async(batch, userId, discordData, inGameName, channelId, messageId) => {
         await mutex.runExclusive(() => {
             if (!cache[batch]) cache[batch] = {};
 
             cache[batch][userId] = {
+                char_id: discordData.char_id,
+                in_game_name: inGameName,
+                bounty: discordData.bounty,
+                gacha: discordData.gacha,
+                bcMultiplier: discordData.bcMultiplier,
                 channelId: `${channelId}`,
                 messageId: `${messageId}`
             };

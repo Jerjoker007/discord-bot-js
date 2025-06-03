@@ -50,7 +50,7 @@ module.exports = {
         }
         
         //Check if the user already submitted a bounty
-        if (await submissionTracker.hasSubmitted(interaction.member.id)) {
+        if (await submissionTracker.hasUserSubmitted(interaction.member.id)) {
             await interaction.reply({
                 embeds: [{
                     author: {
@@ -80,6 +80,16 @@ module.exports = {
             return;
         }
 
+        //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
+        const discordData = {
+            char_id: 42626,
+            bounty: 0,
+            gacha: 0,
+            bcMultiplier: 1.00
+        };
+        //Select in the database (character table) the in-game name to go ahead.
+        const inGameName = 'Artemis';
+
         //Send an interaction to the moderation team
         const sentMessage = await client.channels.cache.get(reviewChannelId).send({
             embeds: [{
@@ -95,11 +105,11 @@ module.exports = {
                         value: `<@${interaction.member.id}>`,
                         inline: true,
                     },
-                    //{
-                    //    name: 'In-game Name',
-                    //    value: `${interaction.options.get('in-game_name').value}`,
-                    //    inline: true,
-                    //},
+                    {
+                        name: 'In-game Name',
+                        value: `${inGameName}`,
+                        inline: true,
+                    },
                     {
                         name: `Batch`,
                         value: `Batch ${interaction.options.get('batch').value}`,
@@ -139,7 +149,7 @@ module.exports = {
         });
         
         //Save the users id to block future submission if not accepted
-        await submissionTracker.markSubmitted(interaction.member.id, `batch-${interaction.options.get('batch').value}`, sentMessage.channel.id, sentMessage.id);
+        await submissionTracker.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, discordData, inGameName, sentMessage.channel.id, sentMessage.id);
 
     },
 

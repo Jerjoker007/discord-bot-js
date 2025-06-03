@@ -2,10 +2,10 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'your_username',
+  user: 'postgres',
   host: 'localhost',
-  database: 'your_db',
-  password: 'your_password',
+  database: 'Rain',
+  password: 'postgres',
   port: 5432,
 });
 
@@ -14,6 +14,7 @@ async function testConnection(retries = 5, delay = 2000) {
         try {
             await pool.query('SELECT 1');
             console.log(`[Database] Connected successfully on attempt ${attempt}.`);
+            break;
         } catch (err) {
             console.warn(`[Database] Attempt ${attempt} failed: ${err.message}`)
 
