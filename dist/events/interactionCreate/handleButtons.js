@@ -15,7 +15,7 @@ const RewardDistributor = require('../../utils/class/RewardDistributor');
 module.exports = async (client, interaction) => {
     if (!interaction.isButton()) return;
 
-    const submitChannel = '1374042127121518785';
+    const submitChannelId = '1374042127121518785';
     const { botName, action, params } = decodeCustomId(interaction.customId);
     
     if (botName === 'ravi') {
@@ -36,7 +36,7 @@ module.exports = async (client, interaction) => {
                     components 
                 });
 
-                await client.channels.cache.get(submitChannel).send(`<@${params.userId}> Your submission was rejected by ${interaction.member.user.username}.`);
+                await client.channels.cache.get(submitChannelId).send(`<@${params.userId}> Your submission was rejected by ${interaction.member.user.username}.`);
         
             } catch (error) {
                 console.error('There was an error with the button interaction.', error);        
