@@ -32,11 +32,11 @@ module.exports = {
                     fields: [
                         {
                             name: `🚧Command Used`,
-                            value: `ravi-submit`,
+                            value: "`/ravi-submit`",
                         },
                         {
                             name: '📜Error message',
-                            value: `<@${interaction.member.id}> is most likely not correctly binded.`,
+                            value: ">>> You don't have any account on this server, pease create an account with `/create` or bind existing one with `/bind`",
                         },
                     ],
                     color: 15844367,
@@ -65,11 +65,11 @@ module.exports = {
                     fields: [
                         {
                             name: `🚧Command Used`,
-                            value: `ravi-submit`,
+                            value: "`/ravi-submit`",
                         },
                         {
                             name: '📜Error message',
-                            value: `<@${interaction.member.id}> has most likely not sent an image.`,
+                            value: `>>> You most likely did not sent an image.`,
                         },
                     ],
                     color: 15844367,
@@ -97,11 +97,11 @@ module.exports = {
                     fields: [
                         {
                             name: `🚧Command Used`,
-                            value: `ravi-submit`,
+                            value: "`/ravi-submit`",
                         },
                         {
                             name: '📜Error message',
-                            value: `<@${interaction.member.id}> has most likely already sent a submission.`,
+                            value: `>>> You most likely already sent a submission.`,
                         },
                     ],
                     color: 15844367,
