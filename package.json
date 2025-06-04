@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jerjoker007/discord-bot-ts.git"
+    "url": "git+https://github.com/Jerjoker007/discord-bot-js.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Jerjoker007/discord-bot-ts/issues"
+    "url": "https://github.com/Jerjoker007/discord-bot-js/issues"
   },
-  "homepage": "https://github.com/Jerjoker007/discord-bot-ts#readme",
+  "homepage": "https://github.com/Jerjoker007/discord-bot-js#readme",
   "description": "",
   "dependencies": {
     "async-mutex": "^0.5.0",
