@@ -1,10 +1,9 @@
 {
   "name": "discord-bot-ts",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "dev": "node src/index.js",
     "start": "node ."
   },
   "repository": {
@@ -24,9 +23,5 @@
     "discord.js": "^14.19.3",
     "dotenv": "^16.5.0",
     "pg": "^8.16.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.15.19",
-    "tsx": "^4.19.4"
   }
 }
