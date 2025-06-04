@@ -12,7 +12,6 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        const confirmChannel = '1374472832532091071';
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
 
         await interaction.reply({

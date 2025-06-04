@@ -45,14 +45,11 @@ class RewardDistributor {
     return num.toString(16).toUpperCase().padStart(padding, "0");
   }
 
-  /// to format LSB to MSB in hex
   reverseHex(hex) {
     return hex.slice(2, 4) + hex.slice(0, 2);
   }
 
-  /// the main function that you will need
   toHexString() {
-    //invalidate the opration if no selected item
     if (this.rewardData.items.length === 0) {
       return
     }
@@ -146,6 +143,41 @@ class RewardDistributor {
     )
   }
 
+  async distributeDiscordRewards(batchKey) {
+    const userEntries = Object.entries(this.batchData[batchKey]);
+    const rewards = this.getRewardData();
+
+    const userIds = [];
+    const updatedBountyCoins = [];
+    const updatedGachaTickets = [];
+
+    for (const [userId, data] of userEntries) {
+      userIds.push(userId);
+      updatedBountyCoins.push((data.bounty + (rewards.bountyCoins * data.bcMultiplier)));
+      updatedGachaTickets.push((data.gacha + rewards.gachaTickets));
+    }
+
+    await this.db.query(
+      `
+        UPDATE discord d SET 
+          bounty = data.new_bounty,
+          gacha = data.new_gacha
+        FROM (
+          SELECT
+            UNNEST($1::text[]) AS discord_id,
+            UNNEST($2::int[]) AS new_bounty,
+            UNNEST($3::int[]) AS new_gacha
+        ) AS data
+        WHERE d.discord_id = data.discord_id
+      `,
+      [
+        userIds,
+        updatedBountyCoins,
+        updatedGachaTickets,
+      ]
+    )
+  }
+
   async distribute(batchKey) {
 
     const userIds = this.getUserIds(batchKey);
@@ -163,7 +195,9 @@ class RewardDistributor {
     try {
       const hex = this.toHexString();
       await dbTransaction.query('BEGIN');
+
       this.distributeItems(characterIds, hex);
+      this.distributeDiscordRewards(batchKey);
 
       await dbTransaction.query('COMMIT');
 

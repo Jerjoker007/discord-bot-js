@@ -1,9 +1,9 @@
 "use strict";
-const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, InteractionResponse, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
+const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
 const { encodeCustomId } = require('../../utils/customId');
 const { getBotOwnerInfos } = require('../../utils/ownerInfos');
+const { getDbData } = require('../../utils/db/getDbData');
 const submissionTracker = require('../../utils/submissionTracker');
-const { channel } = require('diagnostics_channel');
 module.exports = {
     /**
      *
@@ -17,6 +17,41 @@ module.exports = {
 
         const ownerInfos = await getBotOwnerInfos(client);
 
+        //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
+        const dbData = await getDbData(client.db, interaction.member.id);
+
+        if (!dbData || !dbData.char_id) {
+            await interaction.reply({
+                embeds: [{
+                    author: {
+                    name: `${interaction.member.user.username}`,
+                    icon_url: `${userAvatarUrl}`,
+                    },
+                    title: "🛑 Error Occured 🛑",
+                    description: `You don't seem to be binded correctly`,
+                    fields: [
+                        {
+                            name: `🚧Command Used`,
+                            value: `ravi-submit`,
+                        },
+                        {
+                            name: '📜Error message',
+                            value: `<@${interaction.member.id}> is most likely not correctly binded.`,
+                        },
+                    ],
+                    color: 15844367,
+                    footer: {
+                    text: `You can consult this to ${ ownerInfos.username }`,
+                    icon_url: `${ ownerInfos.avatarURL }`
+                    },
+                    timestamp: new Date().toISOString(),
+                 }],
+            });
+
+            return;
+        }
+
+        //Check if the attachment is an image
         if (!interaction.options.getAttachment('image').contentType?.startsWith('image/')) {
             
             await interaction.reply({
@@ -29,17 +64,17 @@ module.exports = {
                     description: `You need to send an image`,
                     fields: [
                         {
-                            name: `Command`,
+                            name: `🚧Command Used`,
                             value: `ravi-submit`,
                         },
                         {
-                            name: 'Error message',
+                            name: '📜Error message',
                             value: `<@${interaction.member.id}> has most likely not sent an image.`,
                         },
                     ],
                     color: 15844367,
                     footer: {
-                    text: `You can consult this to ${ ownerInfos.username}7`,
+                    text: `You can consult this to ${ ownerInfos.username }`,
                     icon_url: `${ ownerInfos.avatarURL }`
                     },
                     timestamp: new Date().toISOString(),
@@ -61,11 +96,11 @@ module.exports = {
                     description: `You have already submitted a bounty`,
                     fields: [
                         {
-                            name: `Command`,
+                            name: `🚧Command Used`,
                             value: `ravi-submit`,
                         },
                         {
-                            name: 'Error message',
+                            name: '📜Error message',
                             value: `<@${interaction.member.id}> has most likely already sent a submission.`,
                         },
                     ],
@@ -79,16 +114,6 @@ module.exports = {
             });
             return;
         }
-
-        //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
-        const discordData = {
-            char_id: 42626,
-            bounty: 0,
-            gacha: 0,
-            bcMultiplier: 1.00
-        };
-        //Select in the database (character table) the in-game name to go ahead.
-        const inGameName = 'Artemis';
 
         //Send an interaction to the moderation team
         const sentMessage = await client.channels.cache.get(reviewChannelId).send({
@@ -107,7 +132,7 @@ module.exports = {
                     },
                     {
                         name: 'In-game Name',
-                        value: `${inGameName}`,
+                        value: `${dbData.inGameName}`,
                         inline: true,
                     },
                     {
@@ -142,14 +167,13 @@ module.exports = {
 
         //Send a confirmation to the user
         await interaction.reply({
-            content: 'Your bounty is submited',
+            content: `Your bounty is submited`,
             files: [
-                `${interaction.options.get('image').attachment.url}`
+                `${interaction.options.getAttachment('image').url}`
             ]
         });
         
-        //Save the users id to block future submission if not accepted
-        await submissionTracker.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, discordData, inGameName, sentMessage.channel.id, sentMessage.id);
+        await submissionTracker.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
 
     },
 

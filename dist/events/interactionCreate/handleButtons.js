@@ -6,7 +6,7 @@ const path = require('path');
 const userDataPath = path.resolve(__dirname, '../../data/submittedUsers.json');
 const rewardDataPath = path.resolve(__dirname, '../../data/raviRewards.json');
 const submissionTracker = require('../../utils/submissionTracker');
-const RewardDistributor = require('../../utils/RewardDistributor');
+const RewardDistributor = require('../../utils/class/RewardDistributor');
 /**
  * 
  * @param {Client} client 
