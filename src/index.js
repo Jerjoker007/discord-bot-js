@@ -2,7 +2,7 @@
 require('dotenv').config();
 const { Client, IntentsBitField } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
-const { pool, testConnection } = require('./utils/database');
+const { pool, testConnection } = require('./utils/dbConnection');
 
 (async () => {
     await testConnection()

@@ -6,7 +6,7 @@ module.exports = {
             `SELECT d.char_id, d.bounty, d.gacha, d.title, c.name 
             FROM discord d
             LEFT JOIN character c
-                ON d.char_id = c.char_id
+                ON d.char_id = c.id
             WHERE discord_id = $1`,
             [userId]
         );

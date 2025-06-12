@@ -59,7 +59,7 @@ module.exports = {
 
             cache[batch][userId] = {
                 char_id: dbData.char_id,
-                in_game_name: dbData.inGameName,
+                inGameName: dbData.inGameName,
                 bounty: dbData.bounty,
                 gacha: dbData.gacha,
                 bcMultiplier: dbData.bcMultiplier,

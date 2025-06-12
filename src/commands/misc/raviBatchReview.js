@@ -1,5 +1,15 @@
 "use strict";
-const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, InteractionResponse, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
+const { Interaction, 
+    ApplicationCommandOptionType, 
+    PermissionFlagsBits, 
+    InteractionResponse, 
+    ActionRowBuilder, 
+    ButtonBuilder, 
+    ButtonStyle, 
+    Client,
+    ContainerBuilder,
+    EmbedBuilder
+} = require('discord.js');
 const { encodeCustomId } = require('../../utils/customId');
 const { getBotOwnerInfos } = require('../../utils/ownerInfos');
 
@@ -13,25 +23,20 @@ module.exports = {
     callback: async (client, interaction) => {
 
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
+        const embeds = new EmbedBuilder()
+            .setColor(15844367)
+            .setTitle(`Raviente's Batch ${interaction.options.get('batch').value} Review`)
+            .setAuthor({ name: `${interaction.member.user.username}`, icon_url: `${userAvatarUrl}`})
+            .addFields(
+                {name: `Batch`, value: `Batch ${interaction.options.get('batch')}`},
+                {name: `Player List`, }
+            )
+            .setTimestamp(new Date().toISOString());
+
+        
 
         await interaction.reply({
-            embeds: [{
-                author: {
-                name: `${interaction.member.user.username}`,
-                icon_url: `${userAvatarUrl}`,
-                },
-                title: `Raviente's Batch ${interaction.options.get('batch').value} Review`,
-                description: ``,
-                fields: [
-                    {
-                        name: `Batch`,
-                        value: `Batch ${interaction.options.get('batch').value}`,
-                        inline: true,
-                    },
-                ],
-                color: 15844367,
-                timestamp: new Date().toISOString(),
-            }],
+            embeds: [embeds],
             components: [
                 new ActionRowBuilder().setComponents(
                     new ButtonBuilder()
