@@ -95,5 +95,18 @@ module.exports = {
             }
             return messages;
         });
+    },
+
+    fetchBatch: async(batchKey) => {
+        return await mutex.runExclusive(() =>{
+            const users = {};
+
+            if (!cache[batchKey]) return users;
+
+            for (const userId in cache[batchKey]) {
+                users[userId] = cache[batchKey][userId];
+            }
+            return users;
+        });
     }
 };

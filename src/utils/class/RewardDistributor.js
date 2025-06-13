@@ -1,12 +1,13 @@
 "use strict";
 const fs = require('fs/promises');
 const path = require('path');
+const { submissionTracker } = require('../../state/globalState');
 
 class RewardDistributor {
 
-  constructor(batchPath, rewardPath, db) {
-    this.batchPath = batchPath;
+  constructor(rewardPath, batchKey, db) {
     this.rewardPath = rewardPath;
+    this.batchKey = batchKey;
     this.batchData = null;
     this.rewardData = null;
     this.db = db;
@@ -14,10 +15,9 @@ class RewardDistributor {
 
   async loadFiles() {
       try {
-        const batchFile = await fs.readFile(path.resolve(this.batchPath), 'utf-8');
         const rewardFile = await fs.readFile(path.resolve(this.rewardPath), 'utf-8');
 
-        this.batchData = JSON.parse(batchFile);
+        this.batchData = await submissionTracker.fetchBatch(this.batchKey);
         this.rewardData = JSON.parse(rewardFile);
 
       } catch (err) {
@@ -25,14 +25,14 @@ class RewardDistributor {
       }
   }
 
-  getUserIds(batchKey) {
-    if (!this.batchData || !this.batchData[batchKey]) return [];
-    return Object.keys(this.batchData[batchKey]);
+  getUserIds() {
+    if (!this.batchData || !this.batchData) return [];
+    return Object.keys(this.batchData);
   }
 
-  getCharacterIds(batchKey) {
-    if (!this.batchData || !this.batchData[batchKey]) return [];
-    return Object.values(this.batchData[batchKey]).map(entry => parseInt(entry.char_id));
+  getCharacterIds() {
+    if (!this.batchData || !this.batchData) return [];
+    return Object.values(this.batchData).map(entry => parseInt(entry.char_id));
   }
 
   getRewardData() {
@@ -143,8 +143,8 @@ class RewardDistributor {
     )
   }
 
-  async distributeDiscordRewards(batchKey) {
-    const userEntries = Object.entries(this.batchData[batchKey]);
+  async distributeDiscordRewards() {
+    const userEntries = Object.entries(this.batchData);
     const rewards = this.getRewardData();
 
     const userIds = [];
@@ -178,10 +178,10 @@ class RewardDistributor {
     )
   }
 
-  async distribute(batchKey) {
+  async distribute() {
 
-    const userIds = this.getUserIds(batchKey);
-    const characterIds = this.getCharacterIds(batchKey);
+    const userIds = this.getUserIds();
+    const characterIds = this.getCharacterIds();
     const rewards = this.getRewardData();
 
     if (!userIds.length || !rewards || !characterIds.length) {
@@ -197,7 +197,7 @@ class RewardDistributor {
       await dbTransaction.query('BEGIN');
 
       this.distributeItems(characterIds, hex);
-      this.distributeDiscordRewards(batchKey);
+      this.distributeDiscordRewards();
 
       await dbTransaction.query('COMMIT');
 

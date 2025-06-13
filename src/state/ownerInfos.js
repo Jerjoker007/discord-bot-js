@@ -2,7 +2,7 @@ const { User } = require('discord.js');
 let cachedOwnerInfo = null;
 module.exports = {
 
-    async getBotOwnerInfos(client) {
+    get: async(client) => {
         if (cachedOwnerInfo) return cachedOwnerInfo;
 
         await client.application.fetch();

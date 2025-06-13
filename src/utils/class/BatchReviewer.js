@@ -1,26 +1,24 @@
 "use strict";
-const fs = require('fs/promises');
 const path = require('path');
 const { EmbedBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const { encodeCustomId } = require('../customId');
 
-class ReviewBatch {
+class BatchReviewer {
 
-    constructor(batchPath, batchKey, user, playersPerPage = 25) {
-        this.batchPath = batchPath;
+    constructor(batchKey, user, currentPage = 0, playersPerPage = 25) {
         this.batchKey= batchKey;
         this.players = [];
         this.user = user;
         this.playersPerPage = playersPerPage;
-        this.currentPage = 0;
+        this.currentPage = currentPage;
     }
 
     async loadFile() {
         try {
-            const batchFile = await fs.readFile(path.resolve(this.batchPath), 'utf-8');
-            const batchData = JSON.parse(batchFile);
+            const { submissionTracker } = require('../../state/globalState');
+            const batchData = await submissionTracker.fetchBatch(this.batchKey);
 
-            this.players = Object.entries(batchData[this.batchKey]).map(([userId, data]) => ({
+            this.players = Object.entries(batchData).map(([userId, data]) => ({
                 id: userId,
                 name: data.inGameName,
             }));
@@ -36,7 +34,7 @@ class ReviewBatch {
 
     getPlayerForPage(page) {
         const start = page * this.playersPerPage;
-        return this.players.splice(start, start + this.playersPerPage);
+        return this.players.slice(start, start + this.playersPerPage);
     }
 
     nextPage() {
@@ -74,9 +72,10 @@ class ReviewBatch {
         return new EmbedBuilder()
             .setTitle(`Batch Players - Page ${this.currentPage + 1} / ${this.totalPages}`)
             .setDescription(`Currently viewing page ${this.currentPage + 1}.`)
+            .setColor(0xfcba03)
             .addFields(fields)
-            .setAuthor({ name: `${this.user.username}`, iconURL: this.user.avatarURL })
-            .setTimestamp(new Date().toISOString());
+            .setAuthor({ name: `${this.user.username}`, iconURL: `${this.user.avatarURL}` })
+            .setTimestamp();
     }
 
     generateSelectMenu() {
@@ -100,9 +99,12 @@ class ReviewBatch {
             new ButtonBuilder()
                 .setCustomId(`${encodeCustomId(
                     'ravi',
-                    'prev-page' 
+                    'prev-page',
+                    {
+                        batch: `${this.batchKey}`,
+                    }
                 )}`)
-                .setLabel('⏮ Prev')
+                .setLabel('◀')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(this.currentPage === 0),
 
@@ -120,9 +122,12 @@ class ReviewBatch {
             new ButtonBuilder()
                 .setCustomId(`${encodeCustomId(
                     'ravi',
-                    'next-page' 
+                    'next-page',
+                    {
+                        batch: `${this.batchKey}`,
+                    }
                 )}`)
-                .setLabel('Next')
+                .setLabel('▶')
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(this.currentPage === this.totalPages - 1)
         );
@@ -131,9 +136,9 @@ class ReviewBatch {
     buildComponents() {
         return [
             new ActionRowBuilder().addComponents(this.generateSelectMenu()),
-            this.generateButtons
+            this.generateButtons()
         ];
     }
 }
 
-module.exports = ReviewBatch;
+module.exports = BatchReviewer;

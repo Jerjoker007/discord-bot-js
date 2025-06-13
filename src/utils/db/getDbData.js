@@ -1,7 +1,7 @@
 "use strict";
 module.exports = {
 
-    async getDbData(db, userId) {
+    getDbData: async(db, userId) => {
         const result = await db.query(
             `SELECT d.char_id, d.bounty, d.gacha, d.title, c.name 
             FROM discord d

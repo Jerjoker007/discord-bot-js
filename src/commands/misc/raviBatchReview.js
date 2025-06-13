@@ -8,10 +8,11 @@ const { Interaction,
     ButtonStyle, 
     Client,
     ContainerBuilder,
-    EmbedBuilder
+    EmbedBuilder,
+    MessageFlags
 } = require('discord.js');
-const { encodeCustomId } = require('../../utils/customId');
-const { getBotOwnerInfos } = require('../../utils/ownerInfos');
+const { batchManager, submissionTracker } = require('../../state/globalState');
+const BatchReviewer = require('../../utils/class/BatchReviewer');
 
 module.exports = {
 
@@ -22,51 +23,38 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
-        const embeds = new EmbedBuilder()
-            .setColor(15844367)
-            .setTitle(`Raviente's Batch ${interaction.options.get('batch').value} Review`)
-            .setAuthor({ name: `${interaction.member.user.username}`, icon_url: `${userAvatarUrl}`})
-            .addFields(
-                {name: `Batch`, value: `Batch ${interaction.options.get('batch')}`},
-                {name: `Player List`, }
-            )
-            .setTimestamp(new Date().toISOString());
+        const batchKey = `batch-${interaction.options.get('batch').value}`;
 
+        if (batchManager.fetchBatch(batchKey)) {
+            return interaction.reply({
+                content: `⚠️ This batch is already being reviewed.`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        const players = await submissionTracker.fetchBatch(batchKey);
+
+        if (Object.keys(players).length < 1) {
+            return interaction.reply({
+                content: `❌ This batch is empty and cannot be reviewed.`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
+
+        const interactionUser = {
+            username: `${interaction.member.user.username}`,
+            avatarURL: `${interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL}`
+        };
+
+        const batchReviewer = new BatchReviewer(batchKey, interactionUser);
+        await batchReviewer.loadFile();
         
-
         await interaction.reply({
-            embeds: [embeds],
-            components: [
-                new ActionRowBuilder().setComponents(
-                    new ButtonBuilder()
-                        .setCustomId(
-                            `${encodeCustomId(
-                                'ravi',
-                                'batch-confirm',
-                                {
-                                    batch: `batch-${interaction.options.get('batch').value}`,
-                                }
-                            )}`
-                        )
-                        .setLabel('Confirm')
-                        .setStyle(ButtonStyle.Success),
-                    
-                    new ButtonBuilder()
-                        .setCustomId(
-                            `${encodeCustomId(
-                                'ravi',
-                                'batch-reject',
-                                {
-                                    batch: `batch-${interaction.options.get('batch').value}`,
-                                }
-                            )}`
-                        )
-                        .setLabel('Reject')
-                        .setStyle(ButtonStyle.Danger)
-                ),
-            ]
+            embeds: [batchReviewer.generateEmbed()],
+            components: batchReviewer.buildComponents()
         });
+
+        batchManager.addBatch(batchKey, batchReviewer);
     },
 
     name: 'ravi-batch-review',

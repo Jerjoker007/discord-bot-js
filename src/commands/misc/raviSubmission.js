@@ -1,9 +1,7 @@
 "use strict";
 const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
-const { encodeCustomId } = require('../../utils/customId');
-const { getBotOwnerInfos } = require('../../utils/ownerInfos');
+const { ownerInfos, submissionTracker } = require('../../state/globalState');
 const { getDbData } = require('../../utils/db/getDbData');
-const submissionTracker = require('../../utils/submissionTracker');
 module.exports = {
     /**
      *
@@ -15,7 +13,7 @@ module.exports = {
         const reviewChannelId = '1374472832532091071';
         const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
 
-        const ownerInfos = await getBotOwnerInfos(client);
+        const ownerInfo = await ownerInfos.get(client);
 
         //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
         const dbData = await getDbData(client.db, interaction.member.id);
@@ -41,8 +39,8 @@ module.exports = {
                     ],
                     color: 15844367,
                     footer: {
-                    text: `You can consult this to ${ ownerInfos.username }`,
-                    icon_url: `${ ownerInfos.avatarURL }`
+                    text: `You can consult this to ${ ownerInfo.username }`,
+                    icon_url: `${ ownerInfo.avatarURL }`
                     },
                     timestamp: new Date().toISOString(),
                  }],
@@ -74,8 +72,8 @@ module.exports = {
                     ],
                     color: 15844367,
                     footer: {
-                    text: `You can consult this to ${ ownerInfos.username }`,
-                    icon_url: `${ ownerInfos.avatarURL }`
+                    text: `You can consult this to ${ ownerInfo.username }`,
+                    icon_url: `${ ownerInfo.avatarURL }`
                     },
                     timestamp: new Date().toISOString(),
                  }],
@@ -106,8 +104,8 @@ module.exports = {
                     ],
                     color: 15844367,
                     footer: {
-                    text: `You can consult this to ${ ownerInfos.username}7`,
-                    icon_url: `${ ownerInfos.avatarURL }`
+                    text: `You can consult this to ${ ownerInfo.username}7`,
+                    icon_url: `${ ownerInfo.avatarURL }`
                     },
                     timestamp: new Date().toISOString(),
                 }],
@@ -147,22 +145,6 @@ module.exports = {
                 color: 15844367,
                 timestamp: new Date().toISOString(),
             }],
-            components: [
-                new ActionRowBuilder().setComponents(
-                    new ButtonBuilder()
-                        .setCustomId(
-                            `${encodeCustomId(
-                                'ravi',
-                                'submission-reject',
-                                {
-                                    userId: `${interaction.member.id}`,
-                                    batch: `batch-${interaction.options.get('batch').value}`,
-                                }
-                            )}`)
-                        .setLabel('Reject')
-                        .setStyle(ButtonStyle.Danger)
-                ),
-            ]
         });
 
         //Send a confirmation to the user
