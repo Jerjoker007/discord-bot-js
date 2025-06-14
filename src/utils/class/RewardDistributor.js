@@ -1,7 +1,7 @@
 "use strict";
 const fs = require('fs/promises');
 const path = require('path');
-const { submissionTracker } = require('../../state/globalState');
+const { submissionManager } = require('../../state/globalState');
 
 class RewardDistributor {
 
@@ -17,7 +17,7 @@ class RewardDistributor {
       try {
         const rewardFile = await fs.readFile(path.resolve(this.rewardPath), 'utf-8');
 
-        this.batchData = await submissionTracker.fetchBatch(this.batchKey);
+        this.batchData = await submissionManager.fetchBatch(this.batchKey);
         this.rewardData = JSON.parse(rewardFile);
 
       } catch (err) {

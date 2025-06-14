@@ -1,6 +1,6 @@
 "use strict";
 const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } = require('discord.js');
-const { ownerInfos, submissionTracker } = require('../../state/globalState');
+const { ownerInfos, submissionManager } = require('../../state/globalState');
 const { getDbData } = require('../../utils/db/getDbData');
 module.exports = {
     /**
@@ -34,7 +34,7 @@ module.exports = {
                         },
                         {
                             name: '📜Error message',
-                            value: ">>> You don't have any account on this server, pease create an account with `/create` or bind existing one with `/bind`",
+                            value: ">>> You don't seem to be correctly binded or haven't selected a main character, use `/card` and follow the error's instruction.\nOnce done come back and resubmit.",
                         },
                     ],
                     color: 15844367,
@@ -83,7 +83,7 @@ module.exports = {
         }
         
         //Check if the user already submitted a bounty
-        if (await submissionTracker.hasUserSubmitted(interaction.member.id)) {
+        if (await submissionManager.hasUserSubmitted(interaction.member.id)) {
             await interaction.reply({
                 embeds: [{
                     author: {
@@ -155,7 +155,7 @@ module.exports = {
             ]
         });
         
-        await submissionTracker.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
+        await submissionManager.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
 
     },
 

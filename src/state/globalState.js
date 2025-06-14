@@ -1,10 +1,10 @@
 "use strict" ;
-const submissionTracker = require('./submissionTracker');
+const submissionManager = require('./submissionManager');
 const ownerInfos = require('./ownerInfos');
 const batchManager = require('./batchManager');
 
 module.exports = {
-    submissionTracker,
+    submissionManager,
     ownerInfos,
     batchManager
 };

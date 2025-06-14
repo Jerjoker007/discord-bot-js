@@ -12,7 +12,9 @@ function loadBatches() {
             const raw = fs.readFileSync(activeBatchReviewsPath, 'utf-8');
             const obj = JSON.parse(raw);
             for (const [batchKey, batchData] of Object.entries(obj)) {
-                batchManager.set(batchKey, new BatchReviewer(batchKey, batchData.user, batchData.currentPage));
+                const batchReviewerInstance = new BatchReviewer(batchKey, batchData.user, batchData.currentPage);
+                batchReviewerInstance.loadFile();
+                batchManager.set(batchKey, batchReviewerInstance);
             }
             console.log(`Loaded ${batchManager.size} batches from disk.`);
         } catch (err) {

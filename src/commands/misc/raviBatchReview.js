@@ -11,7 +11,7 @@ const { Interaction,
     EmbedBuilder,
     MessageFlags
 } = require('discord.js');
-const { batchManager, submissionTracker } = require('../../state/globalState');
+const { batchManager, submissionManager } = require('../../state/globalState');
 const BatchReviewer = require('../../utils/class/BatchReviewer');
 
 module.exports = {
@@ -32,7 +32,7 @@ module.exports = {
             });
         }
 
-        const players = await submissionTracker.fetchBatch(batchKey);
+        const players = await submissionManager.fetchBatch(batchKey);
 
         if (Object.keys(players).length < 1) {
             return interaction.reply({

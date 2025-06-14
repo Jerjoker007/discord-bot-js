@@ -15,8 +15,8 @@ class BatchReviewer {
 
     async loadFile() {
         try {
-            const { submissionTracker } = require('../../state/globalState');
-            const batchData = await submissionTracker.fetchBatch(this.batchKey);
+            const { submissionManager } = require('../../state/globalState');
+            const batchData = await submissionManager.fetchBatch(this.batchKey);
 
             this.players = Object.entries(batchData).map(([userId, data]) => ({
                 id: userId,
