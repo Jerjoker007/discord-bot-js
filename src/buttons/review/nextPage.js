@@ -14,13 +14,14 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async(client, interaction, params) => {
-        const batchReviewer = batchManager.fetchBatch(params.batch);
+        const batchReviewerInstance = batchManager.fetchBatch(params.batch);
+        await batchReviewerInstance.loadFile();
 
-        batchReviewer.nextPage();
+        batchReviewerInstance.nextPage();
 
         await interaction.update({
-            embeds: [batchReviewer.generateEmbed()],
-            components: batchReviewer.buildComponents()
+            embeds: [batchReviewerInstance.generateEmbed()],
+            components: batchReviewerInstance.buildComponents()
         });
 
         batchManager.saveState();

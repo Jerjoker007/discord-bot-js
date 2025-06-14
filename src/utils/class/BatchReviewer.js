@@ -32,6 +32,10 @@ class BatchReviewer {
         return Math.ceil(this.players.length / this.playersPerPage);
     }
 
+    getAllPlayers() {
+        return this.players;
+    }
+
     getPlayerForPage(page) {
         const start = page * this.playersPerPage;
         return this.players.slice(start, start + this.playersPerPage);
@@ -46,7 +50,7 @@ class BatchReviewer {
     }
 
     removePlayerById(userId) {
-        this.players.filter(player => !userId.includes(player.id));
+        this.players = this.players.filter(player => !userId.includes(player.id));
 
         if (this.currentPage >= this.totalPages) {
             this.currentPage = Math.max(0, this.totalPages - 1);
@@ -79,7 +83,11 @@ class BatchReviewer {
     }
 
     generateSelectMenu() {
-        const options = this.getPlayerForPage(this.currentPage).map(player => ({
+        const players = this.getPlayerForPage(this.currentPage);
+
+        if (!players.length) return null;
+
+        const options = players.map(player => ({
             label: player.name,
             value: player.id,
             description: `ID: ${player.id}`,
@@ -88,7 +96,10 @@ class BatchReviewer {
         return new StringSelectMenuBuilder()
             .setCustomId(`${encodeCustomId(
                 'ravi',
-                'remove-player' 
+                'remove-player',
+                {
+                    batch: `${this.batchKey}`,
+                }
             )}`)
             .setPlaceholder('Select player(s) to remove')
             .addOptions(options);
@@ -134,10 +145,13 @@ class BatchReviewer {
     }
 
     buildComponents() {
-        return [
-            new ActionRowBuilder().addComponents(this.generateSelectMenu()),
-            this.generateButtons()
-        ];
+        const components = [];
+
+        const selectMenu = this.generateSelectMenu();
+        if (selectMenu) components.push(new ActionRowBuilder().addComponents(selectMenu));
+
+        components.push(this.generateButtons());
+        return components;
     }
 }
 

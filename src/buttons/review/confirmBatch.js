@@ -1,7 +1,7 @@
 "use strict";
 const path = require('path');
 const rewardDataPath = path.resolve(__dirname, '../../data/raviRewards.json');
-const { submissionManager } = require('../../state/globalState');
+const { submissionManager, batchManager } = require('../../state/globalState');
 const RewardDistributor = require('../../utils/class/RewardDistributor');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, MessageFlags } = require('discord.js');
 
@@ -43,6 +43,7 @@ module.exports = {
             }
 
             await submissionManager.unmarkBatch(params.batch);
+            batchManager.deleteBatch(params.batch);
 
             const components = interaction.message.components.map(row => {
                 // Filter only buttons and disable them

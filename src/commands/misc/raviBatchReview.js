@@ -46,15 +46,15 @@ module.exports = {
             avatarURL: `${interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL}`
         };
 
-        const batchReviewer = new BatchReviewer(batchKey, interactionUser);
-        await batchReviewer.loadFile();
+        const batchReviewerInstance = new BatchReviewer(batchKey, interactionUser);
+        await batchReviewerInstance.loadFile();
         
         await interaction.reply({
-            embeds: [batchReviewer.generateEmbed()],
-            components: batchReviewer.buildComponents()
+            embeds: [batchReviewerInstance.generateEmbed()],
+            components: batchReviewerInstance.buildComponents()
         });
 
-        batchManager.addBatch(batchKey, batchReviewer);
+        batchManager.addBatch(batchKey, batchReviewerInstance);
     },
 
     name: 'ravi-batch-review',

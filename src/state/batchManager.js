@@ -13,7 +13,6 @@ function loadBatches() {
             const obj = JSON.parse(raw);
             for (const [batchKey, batchData] of Object.entries(obj)) {
                 const batchReviewerInstance = new BatchReviewer(batchKey, batchData.user, batchData.currentPage);
-                batchReviewerInstance.loadFile();
                 batchManager.set(batchKey, batchReviewerInstance);
             }
             console.log(`Loaded ${batchManager.size} batches from disk.`);
