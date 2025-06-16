@@ -53,6 +53,9 @@ This bot simplifies the submission, review, and logging process of player screen
 ## 📁 Project Structure
 
 ```file strucure
+guild-data/
+├──guildData.json
+node_modules/
 src/
 ├── data/
 │   ├── review
