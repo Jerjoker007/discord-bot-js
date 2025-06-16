@@ -54,7 +54,7 @@ This bot simplifies the submission, review, and logging process of player screen
 
 ```file strucure
 guild-data/
-├──guildData.json
+├── guildData.json
 node_modules/
 src/
 ├── data/
@@ -62,49 +62,49 @@ src/
 │   │   ├── activeBatchReview.json
 │   │   └── raviRewards.json
 │   └── interactionCreate/
-│       └──submittedUsers.json
+│       └── submittedUsers.json
 ├── events/
 │   ├── interactionCreate/
-│   │    ├──handleButtons.js
-│   │    ├──handleCommands.js
-│   │    └──handleSelectMenu.js
+│   │    ├── handleButtons.js
+│   │    ├── handleCommands.js
+│   │    └── handleSelectMenu.js
 │   └── ready/
-│        ├──01registerCommands.js
-│        └──consoleLog.js
+│        ├── 01registerCommands.js
+│        └── consoleLog.js
 ├── handlers/
-│   └──eventHandler.js
+│   └── eventHandler.js
 ├── interaction/
-│   ├──commands/misc/
+│   ├── commands/misc/
 │   │   ├── ravi-submit.js
 │   │   ├── ravi-batch-review.js
 │   │   └── ravi-config.js
-│   ├──button/review/
-│   │  ├──confirmBatch.js
-│   │  ├──nextPage.js
-│   │  └──prevPage.js
-│   └──selectMenu/review/
-│      └──removePlayer.js
-├──state/
-│  ├──batchManager.js
-│  ├──globalState.js
-│  ├──ownerInfos.js
-│  └──submissionManager.js
+│   ├── button/review/
+│   │   ├── confirmBatch.js
+│   │   ├── nextPage.js
+│   │   └── prevPage.js
+│   └── selectMenu/review/
+│       └──removePlayer.js
+├── state/
+│   ├── batchManager.js
+│   ├── globalState.js
+│   ├── ownerInfos.js
+│   └── submissionManager.js
 ├── utils/
-│   ├──class/
-│   |  ├──BatchReviewer.js
-│   |  └──RewardDistributor.js
-│   ├──db/
-│   |  └──getDbData.js
+│   ├── class/
+│   |   ├── BatchReviewer.js
+│   |   └── RewardDistributor.js
+│   ├── db/
+│   |   └──getDbData.js
 │   ├── areCommandsDifferent.js
-│   ├──commandAccess.js
-│   ├──customId.js
-│   ├──dbConnection.js
+│   ├── commandAccess.js
+│   ├── customId.js
+│   ├── dbConnection.js
 │   ├── getAllFiles.js
 │   ├── getApplicationCommands.js
-│   ├──getLocalButtons.js
+│   ├── getLocalButtons.js
 │   ├── getLocalCommands.js
-│   ├──getLocalSelectMenu.js
-│   └──guildConfig.js
+│   ├── getLocalSelectMenu.js
+│   └── guildConfig.js
 index.js
 .env
 config.json
