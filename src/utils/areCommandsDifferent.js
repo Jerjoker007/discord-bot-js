@@ -16,11 +16,12 @@ module.exports = (existingCommand, localCommand) => {
         for (const localOption of localOptions) {
             const existingOption = existingOptions?.find((option) => option.name === localOption.name);
             if (!existingOption) {
+                
                 return true;
             }
             if (localOption.description !== existingOption.description ||
                 localOption.type !== existingOption.type ||
-                (localOption.required || false) !== existingOption.required ||
+                (localOption.required || false)!== (existingOption.required || false) ||
                 (localOption.choices?.length || 0) !==
                     (existingOption.choices?.length || 0) ||
                 areChoicesDifferent(localOption.choices || [], existingOption.choices || [])) {

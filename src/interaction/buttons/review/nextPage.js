@@ -14,7 +14,7 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async(client, interaction, params) => {
-        const batchReviewerInstance = batchManager.fetchBatch(params.batch);
+        const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
         await batchReviewerInstance.loadFile();
 
         batchReviewerInstance.nextPage();

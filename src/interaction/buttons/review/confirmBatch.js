@@ -1,8 +1,8 @@
 "use strict";
 const path = require('path');
-const rewardDataPath = path.resolve(__dirname, '../../data/raviRewards.json');
-const { submissionManager, batchManager } = require('../../state/globalState');
-const RewardDistributor = require('../../utils/class/RewardDistributor');
+const rewardDataPath = path.join(__dirname, '../../data/review/raviRewards.json');
+const { submissionManager, batchManager } = require('../../../state/globalState');
+const RewardDistributor = require('../../../utils/class/RewardDistributor');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
@@ -18,12 +18,12 @@ module.exports = {
      */
     callback: async (client, interaction, params) => {
         try {
-            const batchDistribution = new RewardDistributor(rewardDataPath, params.batch, client.db);
+            const batchDistribution = new RewardDistributor(rewardDataPath, params.batchKey, client.db);
             
             await batchDistribution.loadFiles();
             await batchDistribution.distribute();
 
-            let messages = await submissionManager.fetchMessages(params.batch);
+            const messages = await submissionManager.fetchBatchMessages(params.batchKey);
 
             for (const message of messages) {
                 try {
@@ -42,8 +42,8 @@ module.exports = {
                 }
             }
 
-            await submissionManager.unmarkBatch(params.batch);
-            batchManager.deleteBatch(params.batch);
+            await submissionManager.unmarkBatch(params.batchKey);
+            batchManager.deleteBatch(params.batchKey);
 
             const components = interaction.message.components.map(row => {
                 // Filter only buttons and disable them

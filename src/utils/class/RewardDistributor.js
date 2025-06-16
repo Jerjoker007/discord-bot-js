@@ -106,7 +106,7 @@ class RewardDistributor {
         charIds,
         Array(charIds.length).fill(dataBuffer),
         Array(charIds.length).fill(1),
-        Array(charIds.length).fill(true),
+        Array(charIds.length).fill(false),
         Array(charIds.length).fill('Event BBQ25'),
         Array(charIds.length).fill(`~C05 Raviente's Bounty`)
       ]

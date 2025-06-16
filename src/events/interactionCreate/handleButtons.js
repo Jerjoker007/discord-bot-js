@@ -13,8 +13,6 @@ const getLocalButtons = require('../../utils/getLocalButtons');
 module.exports = async (client, interaction) => {
     if (!interaction.isButton()) return;
 
-    const submitChannelId = '1374042127121518785';
-
     const localButtons = getLocalButtons();
     const { botName, action, params } = decodeCustomId(interaction.customId);
 

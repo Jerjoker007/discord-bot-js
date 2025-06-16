@@ -1,6 +1,7 @@
 {
 	"items": [
-		{"type":7, "code":"1230","name": "Divine Power Gem", "amount":40000},
+		{"type":7, "code":"1230","name": "Divine Power Gem", "amount":20000},
+		{"type":7, "code":"1230","name": "Divine Power Gem", "amount":20000},
 		{"type":7, "code":"9106","name": "Maiden's Wish (HP)", "amount":25},
 		{"type":7, "code":"9206","name": "Maiden's Wish (Evd)", "amount":25},
 		{"type":7, "code":"9306","name": "Maiden's Wish (Stm)", "amount":25},

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const BatchReviewer = require('../utils/class/BatchReviewer');
 
-const activeBatchReviewsPath = path.resolve(__dirname, '../data/activeBatchReviews.json');
+const activeBatchReviewsPath = path.resolve(__dirname, '../data/review/activeBatchReviews.json');
 const batchManager = new Map();
 
 function loadBatches() {

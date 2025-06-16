@@ -11,8 +11,9 @@ const { Interaction,
     EmbedBuilder,
     MessageFlags
 } = require('discord.js');
-const { batchManager, submissionManager } = require('../../state/globalState');
-const BatchReviewer = require('../../utils/class/BatchReviewer');
+const { batchManager, submissionManager } = require('../../../state/globalState');
+const BatchReviewer = require('../../../utils/class/BatchReviewer');
+const { validateCommandAccess } = require('../../../utils/commandAccess');
 
 module.exports = {
 
@@ -22,6 +23,17 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
+        const guildConfig = getGuildConfig(interaction.guild.id);
+        const reviewChannelId = guildConfig.channels?.review;
+        const submissionChannelId = guildConfig.channels?.receptionist;
+
+        const err = validateCommandAccess(interaction, submissionChannelId, guildConfig);
+        if (err) {
+            return await interaction.reply({
+                content: `❌ ${err}`,
+                flags: MessageFlags.Ephemeral
+            });
+        }
 
         const batchKey = `batch-${interaction.options.get('batch').value}`;
 

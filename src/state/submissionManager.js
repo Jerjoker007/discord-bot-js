@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { Mutex } = require('async-mutex');
 
-const filePath = path.join(__dirname, '../data/submittedUsers.json');
+const filePath = path.join(__dirname, '../data/submission/submittedUsers.json');
 let cache = {};
 const mutex = new Mutex();
 
@@ -44,8 +44,8 @@ process.on('unhandledRejection', (error) => {
 module.exports = {
     hasUserSubmitted: async(userId) => {
         return await mutex.runExclusive(() =>{
-            for (const batch in cache) {
-                if (cache[batch][userId]) {
+            for (const batchKey in cache) {
+                if (cache[batchKey][userId]) {
                     return true;
                 }
             }
@@ -53,11 +53,11 @@ module.exports = {
         });
     },
 
-    markSubmittedUser: async(batch, userId, dbData, channelId, messageId) => {
+    markSubmittedUser: async(batchKey, userId, dbData, channelId, messageId) => {
         await mutex.runExclusive(() => {
-            if (!cache[batch]) cache[batch] = {};
+            if (!cache[batchKey]) cache[batchKey] = {};
 
-            cache[batch][userId] = {
+            cache[batchKey][userId] = {
                 char_id: dbData.char_id,
                 inGameName: dbData.inGameName,
                 bounty: dbData.bounty,
@@ -69,30 +69,39 @@ module.exports = {
         });
     },
 
-    unmarkSubmittedUser: async(userId, batch) => {
+    unmarkSubmittedUser: async(userId, batchKey) => {
         await mutex.runExclusive(() => {
-            if (!cache[batch]) return;
-            delete cache[batch][userId];
-            if (Object.keys(cache[batch]).length === 0) delete cache[batch];
+            if (!cache[batchKey]) return;
+            delete cache[batchKey][userId];
+            if (Object.keys(cache[batchKey]).length === 0) delete cache[batchKey];
         });
     },
 
-    unmarkBatch: async(batch) => {
+    unmarkBatch: async(batchKey) => {
         await mutex.runExclusive(() => {
-            delete cache[batch];
+            delete cache[batchKey];
         })
     },
 
-    fetchMessages: async(batch) => {
+    fetchBatchMessages: async(batchKey) => {
         return await mutex.runExclusive(() =>{
             const messages = [];
 
-            if (!cache[batch]) return messages;
+            if (!cache[batchKey]) return messages;
 
-            for (const userId in cache[batch]) {
-                const { channelId, messageId } = cache[batch][userId];
+            for (const userId in cache[batchKey]) {
+                const { channelId, messageId } = cache[batchKey][userId];
                 messages.push({ channelId, messageId });
             }
+            return messages;
+        });
+    },
+
+    fetchUserMessage: async(userId, batchKey) => {
+        return await mutex.runExclusive(() =>{
+            if (!cache[batchKey] || !cache[batchKey][userId]) return null;
+
+            const messages = cache[batchKey][userId];
             return messages;
         });
     },

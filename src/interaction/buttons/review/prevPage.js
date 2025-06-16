@@ -1,6 +1,6 @@
 "use strict";
 const { Client, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require("discord.js");
-const { batchManager } = require('../../state/globalState');
+const { batchManager } = require('../../../state/globalState');
 
 module.exports = {
 
@@ -14,7 +14,7 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async(client, interaction, params) => {
-        const batchReviewerInstance = batchManager.fetchBatch(params.batch);
+        const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
         await batchReviewerInstance.loadFile();
 
         batchReviewerInstance.prevPage();

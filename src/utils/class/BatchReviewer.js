@@ -98,7 +98,7 @@ class BatchReviewer {
                 'ravi',
                 'remove-player',
                 {
-                    batch: `${this.batchKey}`,
+                    batchKey: `${this.batchKey}`,
                 }
             )}`)
             .setPlaceholder('Select player(s) to remove')
@@ -112,7 +112,7 @@ class BatchReviewer {
                     'ravi',
                     'prev-page',
                     {
-                        batch: `${this.batchKey}`,
+                        batchKey: `${this.batchKey}`,
                     }
                 )}`)
                 .setLabel('◀')
@@ -124,7 +124,7 @@ class BatchReviewer {
                     'ravi',
                     'batch-confirm',
                     {
-                        batch: `${this.batchKey}`,
+                        batchKey: `${this.batchKey}`,
                     }
                 )}`)
                 .setLabel('Confirm')
@@ -135,7 +135,7 @@ class BatchReviewer {
                     'ravi',
                     'next-page',
                     {
-                        batch: `${this.batchKey}`,
+                        batchKey: `${this.batchKey}`,
                     }
                 )}`)
                 .setLabel('▶')
