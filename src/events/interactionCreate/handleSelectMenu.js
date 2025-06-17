@@ -1,5 +1,5 @@
 "use strict";
-const { Client, Interaction } = require('discord.js');
+const { Client, Interaction, MessageFlags } = require('discord.js');
 const { devs, testServer } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
 const getLocalSelectMenu = require('../../utils/getLocalSelectMenu');

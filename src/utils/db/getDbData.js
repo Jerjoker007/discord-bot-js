@@ -14,11 +14,11 @@ module.exports = {
         if (!result.rowCount) return null;
 
         const row = result.rows[0];
-        let bcMultiplier = 1.0;
+        let bcMultiplier = 0.0;
 
-        if (row.title > 4) bcMultiplier = 1.4;
-        else if (row.title < 4 && row.title >= 2) bcMultiplier = 1.2;
-        else if (row.title == 1) bcMultiplier = 1.1;
+        if (row.title > 4) bcMultiplier = 0.4;
+        else if (row.title < 4 && row.title >= 2) bcMultiplier = 0.2;
+        else if (row.title == 1) bcMultiplier = 0.1;
 
         return {
             char_id: row.char_id,

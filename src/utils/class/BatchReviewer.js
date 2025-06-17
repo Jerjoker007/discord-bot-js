@@ -76,7 +76,7 @@ class BatchReviewer {
         return new EmbedBuilder()
             .setTitle(`Batch Players - Page ${this.currentPage + 1} / ${this.totalPages}`)
             .setDescription(`Currently viewing page ${this.currentPage + 1}.`)
-            .setColor(0xfcba03)
+            .setColor(0x94fc03)
             .addFields(fields)
             .setAuthor({ name: `${this.interactionUser.username}`, iconURL: `${this.interactionUser.avatarURL}` })
             .setTimestamp();

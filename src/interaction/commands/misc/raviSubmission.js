@@ -11,9 +11,10 @@ module.exports = {
      * @param {Interaction} interaction
      */
     callback: async (client, interaction) => {
+        const guildConfig = getGuildConfig(interaction.guild.id);
+        const userAvatarUrl = interaction.member.user.displayAvatarURL();
+        const ownerInfo = await ownerInfos.get(client);
         try {
-            const guildConfig = getGuildConfig(interaction.guild.id);
-    
             const err = validateCommandAccess(interaction, guildConfig.channels?.receptionist, guildConfig);
             if (err) {
                 return await interaction.reply({
@@ -21,9 +22,7 @@ module.exports = {
                     flags: MessageFlags.Ephemeral
                 });
             }
-    
-            const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
-    
+
             const ownerInfo = await ownerInfos.get(client);
     
             //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
@@ -129,7 +128,7 @@ module.exports = {
                                     },
                                 ])
                                 .setImage(interaction.options.getAttachment('image').url)
-                                .setColor(15844367)
+                                .setColor(0x94fc03)
                                 .setTimestamp()
                         ],
             });
@@ -162,10 +161,10 @@ module.exports = {
                 .setColor(15844367)
                 .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
                 .setTimestamp();
-            await interaction.reply({
+            await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await client.channels.cache.get(guildConfig.channels.errors).send({
+            await interaction.reply({
                 embeds: [errorEmbeds],
             });
         }

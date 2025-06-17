@@ -14,6 +14,8 @@ const { Interaction,
 const { batchManager, submissionManager } = require('../../../state/globalState');
 const BatchReviewer = require('../../../utils/class/BatchReviewer');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
+const { getGuildConfig } = require('../../../utils/guildConfig');
+const { ownerInfos } = require('../../../state/globalState');
 
 module.exports = {
 
@@ -23,11 +25,12 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
+        const guildConfig = getGuildConfig(interaction.guild.id);
+        const userAvatarUrl = interaction.member.user.displayAvatarURL();
+        const ownerInfo = await ownerInfos.get(client);
         try { 
-            const guildConfig = getGuildConfig(interaction.guild.id);
-            const reviewChannelId = guildConfig.channels?.review;
     
-            const err = validateCommandAccess(interaction, reviewChannelId, guildConfig);
+            const err = validateCommandAccess(interaction, guildConfig.channels?.review, guildConfig);
             if (err) {
                 return await interaction.reply({
                     content: `❌ ${err}`,
@@ -37,7 +40,7 @@ module.exports = {
     
             const batchKey = `batch-${interaction.options.get('batch').value}`;
     
-            if (batchManager.fetchBatch(batchKey)) {
+            if (await batchManager.fetchBatch(batchKey)) {
                 return interaction.reply({
                     content: `⚠️ This batch is already being reviewed.`,
                     flags: MessageFlags.Ephemeral
@@ -67,7 +70,7 @@ module.exports = {
                 components: batchReviewerInstance.buildComponents()
             });
     
-            batchManager.addBatch(batchKey, batchReviewerInstance);
+            await batchManager.addBatch(batchKey, batchReviewerInstance);
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
@@ -86,10 +89,10 @@ module.exports = {
                 .setColor(15844367)
                 .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
                 .setTimestamp();
-            await interaction.reply({
+            await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await client.channels.cache.get(guildConfig.channels.errors).send({
+            await interaction.reply({
                 embeds: [errorEmbeds],
             });
         }

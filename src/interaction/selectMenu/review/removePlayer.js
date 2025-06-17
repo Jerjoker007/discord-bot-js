@@ -16,8 +16,8 @@ module.exports = {
      */
     callback: async (client, interaction, params) => {
         try {
-            const guildInfo = getGuildConfig(params.batchKey);
-            const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
+            const guildInfo = getGuildConfig(interaction.guild.id);
+            const batchReviewerInstance = await batchManager.fetchBatch(params.batchKey);
             await batchReviewerInstance.loadFile();
 
             const message = await submissionManager.fetchUserMessage(interaction.values[0], params.batchKey);
@@ -41,6 +41,10 @@ module.exports = {
             batchReviewerInstance.removePlayerById(interaction.values[0]);
             submissionManager.unmarkSubmittedUser(interaction.values[0], params.batchKey);
 
+            await client.channels.cache.get(guildInfo.channels.receptionist).send({
+                content: `<@${interaction.values[0]}> your submission was rejected by ${interaction.user.username}.`,
+            });
+
             if (!batchReviewerInstance.getAllPlayers().length) {
                 
                 await interaction.deferUpdate();
@@ -51,16 +55,13 @@ module.exports = {
                     flags: MessageFlags.Ephemeral
                 });
 
-                batchManager.deleteBatch(params.batchKey);
+                await batchManager.deleteBatch(params.batchKey);
                 
-                submissionManager.unmarkBatch(params.batchKey);
+                await submissionManager.unmarkBatch(params.batchKey);
 
                 return;
             }
 
-            await client.channels.cache.get(guildInfo.channels.receptionist).send({
-                content: `<@${interaction.values[0]}> your submission was rejected by ${interaction.user.username}.`,
-            });
             await interaction.update({
                 embeds: [batchReviewerInstance.generateEmbed()],
                 components: batchReviewerInstance.buildComponents()

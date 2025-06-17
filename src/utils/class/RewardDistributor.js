@@ -2,14 +2,16 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { submissionManager } = require('../../state/globalState');
+const { EmbedBuilder } = require('discord.js');
 
 class RewardDistributor {
 
-  constructor(rewardPath, batchKey, db) {
+  constructor(rewardPath, batchKey, interaction, db) {
     this.rewardPath = rewardPath;
     this.batchKey = batchKey;
     this.batchData = null;
     this.rewardData = null;
+    this.interaction = interaction;
     this.db = db;
   }
 
@@ -62,10 +64,7 @@ class RewardDistributor {
   }
 
   hexToItems(hexData) {
-    console.log("Hex =", hexData);
-
     const itemCount = parseInt(hexData.slice(0, 4), 16);
-    console.log("Count =", itemCount);
 
     const items = [];
     let index = 4;
@@ -110,7 +109,7 @@ class RewardDistributor {
         Array(charIds.length).fill('Event BBQ25'),
         Array(charIds.length).fill(`~C05 Raviente's Bounty`)
       ]
-    )
+    );
 
     const distIds = insertDistributionQuery.rows.map((row) => row.id);
 
@@ -140,12 +139,11 @@ class RewardDistributor {
         codes,
         amounts
       ]
-    )
+    );
   }
 
-  async distributeDiscordRewards() {
+  async distributeDiscordRewards(rewards) {
     const userEntries = Object.entries(this.batchData);
-    const rewards = this.getRewardData();
 
     const userIds = [];
     const updatedBountyCoins = [];
@@ -153,7 +151,7 @@ class RewardDistributor {
 
     for (const [userId, data] of userEntries) {
       userIds.push(userId);
-      updatedBountyCoins.push((data.bounty + (rewards.bountyCoins * data.bcMultiplier)));
+      updatedBountyCoins.push((data.bounty + (rewards.bountyCoins * (1.0 + data.bcMultiplier))));
       updatedGachaTickets.push((data.gacha + rewards.gachaTickets));
     }
 
@@ -178,6 +176,30 @@ class RewardDistributor {
     );
   }
 
+  async createBountyMessage(rewards) {
+    const messages = [];
+    for (const [userId, data] of Object.entries(this.batchData)) {
+      const user = await this.interaction.client.users.fetch(userId);
+      const content = `<@${userId}>'s Solo Event BBQ25 Reward already distributed`;
+      let itemsField = '>>> ';
+      for (const item of rewards.items) {
+        itemsField += `${item.name} x${item.amount}\n`;
+      }
+      const embeds = new EmbedBuilder()
+            .setAuthor({ name: `${user.username}`, iconURL: user.displayAvatarURL() })
+            .setTitle('Bounty Reward')
+            .setDescription(`<@${userId}>'s reward for Solo BBQ25 category Event`)
+            .setColor(0x94fc03)
+            .addFields([ 
+              { name: 'Bounty Coin', value: `Bounty Reward: Bc ${rewards.bountyCoins}\nTitle Bonus: ${100 * data.bcMultiplier}%\nReward with Bonus: Bc ${rewards.bountyCoins * (1.0 + data.bcMultiplier)}`},
+              { name: 'Gacha Tickets', value: `Ticket Reward: ${rewards.gachaTickets} Ticket(s)`},
+              { name: 'Items/Equipment', value: itemsField }
+            ]);
+      messages.push({ content, embeds: [embeds]});
+    }
+    return messages;
+  }
+
   async distribute() {
 
     const userIds = this.getUserIds();
@@ -196,8 +218,8 @@ class RewardDistributor {
       const hex = this.toHexString();
       await dbTransaction.query('BEGIN');
 
-      this.distributeItems(characterIds, hex);
-      this.distributeDiscordRewards();
+      await this.distributeItems(characterIds, hex);
+      await this.distributeDiscordRewards(rewards);
 
       await dbTransaction.query('COMMIT');
 
@@ -209,8 +231,7 @@ class RewardDistributor {
     } finally {
       dbTransaction.release();
     }
-
-
+    return await this.createBountyMessage(rewards);
   }
 }
 

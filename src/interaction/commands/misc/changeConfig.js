@@ -1,6 +1,7 @@
 "use strict" ;
 const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { updateGuildConfig } = require('../../../utils/guildConfig');
+const { ownerInfos } = require('../../../state/globalState');
 
 module.exports = {
 
@@ -10,8 +11,9 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
+        const userAvatarUrl = interaction.member.user.displayAvatarURL();
+        const ownerInfo = await ownerInfos.get(client);
         try {
-            const subCommand = interaction.options.getSubcommand();
             const guildId = interaction.guildId;
     
             const type = interaction.options.getString('type');
@@ -46,9 +48,6 @@ module.exports = {
             await interaction.reply({
                 embeds: [errorEmbeds],
                 flags: MessageFlags.Ephemeral
-            });
-            await client.channels.cache.get(guildConfig.channels.errors).send({
-                embeds: [errorEmbeds],
             });
         }
     },

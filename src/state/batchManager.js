@@ -28,7 +28,7 @@ function saveState() {
     for (const [batchKey, batchData] of batchManager.entries()) {
         snapshot[batchKey] = {
             currentPage: batchData.currentPage,
-            user: batchData.user
+            user: batchData.interactionUser
         }
     }
 
@@ -38,16 +38,16 @@ function saveState() {
 loadBatches();
 
 module.exports = {
-    addBatch(batchKey, batchReviewerInstance) {
+    addBatch: async(batchKey, batchReviewerInstance) => {
         batchManager.set(batchKey, batchReviewerInstance);
         saveState();
     },
 
-    fetchBatch(batchKey) {
+    fetchBatch: async(batchKey) => {
         return batchManager.get(batchKey);
     },
 
-    deleteBatch(batchKey) {
+    deleteBatch: async(batchKey) => {
         batchManager.delete(batchKey);
         saveState();
     },

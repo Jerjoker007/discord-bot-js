@@ -1,6 +1,7 @@
 "use strict";
 const { Client, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require("discord.js");
-const { batchManager } = require('../../state/globalState');
+const { batchManager, ownerInfos } = require('../../../state/globalState');
+const { getGuildConfig } = require('../../../utils/guildConfig');
 
 module.exports = {
 
@@ -14,8 +15,11 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async(client, interaction, params) => {
+        const guildConfig = getGuildConfig(interaction.guild.id);
+        const userAvatarUrl = interaction.member.user.displayAvatarURL();
+        const ownerInfo = await ownerInfos.get(client);
         try {
-            const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
+            const batchReviewerInstance = await batchManager.fetchBatch(params.batchKey);
             await batchReviewerInstance.loadFile();
     
             batchReviewerInstance.nextPage();
@@ -44,10 +48,10 @@ module.exports = {
                 .setColor(15844367)
                 .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
                 .setTimestamp();
-            await interaction.reply({
+            await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await client.channels.cache.get(guildConfig.channels.errors).send({
+            await interaction.reply({
                 embeds: [errorEmbeds],
             });
         }
