@@ -17,6 +17,13 @@ module.exports = async (client, interaction) => {
     const { botName, action, params } = decodeCustomId(interaction.customId);
 
     if (botName !== 'ravi') return;
+
+    if (params?.interactionUserId && params.interactionUserId !== interaction.member.id) {
+        return await interaction.reply({
+            content: `❌ You cannot use that select menu, only the creator of the command can use it.`,
+            flags: MessageFlags.Ephemeral,
+        });
+    }
     
     try {
         const selectMenuObject = localSelectMenu.find(btn => btn.name === action);

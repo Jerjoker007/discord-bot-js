@@ -5,10 +5,10 @@ const { encodeCustomId } = require('../customId');
 
 class BatchReviewer {
 
-    constructor(batchKey, user, currentPage = 0, playersPerPage = 25) {
+    constructor(batchKey, interactionUser, currentPage = 0, playersPerPage = 25) {
         this.batchKey= batchKey;
         this.players = [];
-        this.user = user;
+        this.interactionUser = interactionUser;
         this.playersPerPage = playersPerPage;
         this.currentPage = currentPage;
     }
@@ -78,7 +78,7 @@ class BatchReviewer {
             .setDescription(`Currently viewing page ${this.currentPage + 1}.`)
             .setColor(0xfcba03)
             .addFields(fields)
-            .setAuthor({ name: `${this.user.username}`, iconURL: `${this.user.avatarURL}` })
+            .setAuthor({ name: `${this.interactionUser.username}`, iconURL: `${this.interactionUser.avatarURL}` })
             .setTimestamp();
     }
 
@@ -99,6 +99,7 @@ class BatchReviewer {
                 'remove-player',
                 {
                     batchKey: `${this.batchKey}`,
+                    interactionUserId: `${this.interactionUser.id}`,
                 }
             )}`)
             .setPlaceholder('Select player(s) to remove')
@@ -125,6 +126,7 @@ class BatchReviewer {
                     'batch-confirm',
                     {
                         batchKey: `${this.batchKey}`,
+                        interactionUserId: `${this.interactionUser.id}`,
                     }
                 )}`)
                 .setLabel('Confirm')

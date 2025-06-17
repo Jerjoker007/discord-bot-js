@@ -11,140 +11,164 @@ module.exports = {
      * @param {Interaction} interaction
      */
     callback: async (client, interaction) => {
-        const guildConfig = getGuildConfig(interaction.guild.id);
-        const reviewChannelId = guildConfig.channels?.review;
-        const submissionChannelId = guildConfig.channels?.receptionist;
-
-        const err = validateCommandAccess(interaction, submissionChannelId, guildConfig);
-        if (err) {
-            return await interaction.reply({
-                content: `❌ ${err}`,
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
-        const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
-
-        const ownerInfo = await ownerInfos.get(client);
-
-        //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
-        const dbData = await getDbData(client.db, interaction.member.id);
-
-        if (!dbData || !dbData.char_id) {
-            await interaction.reply({
-                embeds: [new EmbedBuilder()
-                            .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                            .setTitle(`🛑 Error Occured 🛑`)
-                            .setDescription(`You don't seem to be binded correctly`)
-                            .addFields([
-                                {
-                                    name: `🚧Command Used`,
-                                    value: "`/ravi-submit`",
-                                },
-                                {
-                                    name: '📜Error message',
-                                    value: ">>> You don't seem to be correctly binded or haven't selected a main character, use `/card` and follow the error's instruction.\nOnce done come back and resubmit.",
-                                },
-                            ])
-                            .setColor(15844367)
-                            .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
-                            .setTimestamp()
-                    ],
-            });
-
-            return;
-        }
-
-        //Check if the attachment is an image
-        if (!interaction.options.getAttachment('image').contentType?.startsWith('image/')) {
+        try {
+            const guildConfig = getGuildConfig(interaction.guild.id);
+    
+            const err = validateCommandAccess(interaction, guildConfig.channels?.receptionist, guildConfig);
+            if (err) {
+                return await interaction.reply({
+                    content: `❌ ${err}`,
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+    
+            const userAvatarUrl = interaction.member.user.avatarURL() ?? interaction.member.user.defaultAvatarURL;
+    
+            const ownerInfo = await ownerInfos.get(client);
+    
+            //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
+            const dbData = await getDbData(client.db, interaction.member.id);
+    
+            if (!dbData || !dbData.char_id) {
+                await interaction.reply({
+                    embeds: [new EmbedBuilder()
+                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setTitle(`🛑 Error Occured 🛑`)
+                                .setDescription(`You don't seem to be binded correctly`)
+                                .addFields([
+                                    {
+                                        name: `🚧Command Used`,
+                                        value: "`/ravi-submit`",
+                                    },
+                                    {
+                                        name: '📜Error message',
+                                        value: ">>> You don't seem to be correctly binded or haven't selected a main character, use `/card` and follow the error's instruction.\nOnce done come back and resubmit.",
+                                    },
+                                ])
+                                .setColor(15844367)
+                                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                                .setTimestamp()
+                        ],
+                });
+    
+                return;
+            }
+    
+            //Check if the attachment is an image
+            if (!interaction.options.getAttachment('image').contentType?.startsWith('image/')) {
+                
+                await interaction.reply({
+                    embeds: [new EmbedBuilder()
+                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setTitle(`🛑 Error Occured 🛑`)
+                                .setDescription(`You need to send an image`)
+                                .addFields([
+                                    {
+                                        name: `🚧Command Used`,
+                                        value: "`/ravi-submit`",
+                                    },
+                                    {
+                                        name: '📜Error message',
+                                        value: ">>> You most likely did not sent an image.",
+                                    },
+                                ])
+                                .setColor(15844367)
+                                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                                .setTimestamp()
+                            ],
+                });
+    
+                return;
+            }
             
-            await interaction.reply({
+            //Check if the user already submitted a bounty
+            if (await submissionManager.hasUserSubmitted(interaction.member.id)) {
+                await interaction.reply({
+                    embeds: [new EmbedBuilder()
+                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setTitle(`🛑 Error Occured 🛑`)
+                                .setDescription(`You have already submitted a bounty`)
+                                .addFields([
+                                    {
+                                        name: `🚧Command Used`,
+                                        value: "`/ravi-submit`",
+                                    },
+                                    {
+                                        name: '📜Error message',
+                                        value: ">>> You most likely already sent a submission.",
+                                    },
+                                ])
+                                .setColor(15844367)
+                                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                                .setTimestamp()
+                            ],
+                });
+                return;
+            }
+    
+            //Send an interaction to the moderation team
+            const sentMessage = await client.channels.cache.get(guildConfig.channels.review).send({
                 embeds: [new EmbedBuilder()
-                            .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                            .setTitle(`🛑 Error Occured 🛑`)
-                            .setDescription(`You need to send an image`)
-                            .addFields([
-                                {
-                                    name: `🚧Command Used`,
-                                    value: "`/ravi-submit`",
-                                },
-                                {
-                                    name: '📜Error message',
-                                    value: ">>> You most likely did not sent an image.",
-                                },
-                            ])
-                            .setColor(15844367)
-                            .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
-                            .setTimestamp()
+                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setTitle(`Raviente's Bounty Submission`)
+                                .addFields([
+                                    {
+                                        name: 'User',
+                                        value: `<@${interaction.member.id}>`,
+                                        inline: true,
+                                    },
+                                    {
+                                        name: 'In-game Name',
+                                        value: `${dbData.inGameName}`,
+                                        inline: true,
+                                    },
+                                    {
+                                        name: `Batch`,
+                                        value: `Batch ${interaction.options.get('batch').value}`,
+                                        inline: true,
+                                    },
+                                ])
+                                .setImage(interaction.options.getAttachment('image').url)
+                                .setColor(15844367)
+                                .setTimestamp()
                         ],
             });
-
-            return;
-        }
-        
-        //Check if the user already submitted a bounty
-        if (await submissionManager.hasUserSubmitted(interaction.member.id)) {
+    
+            //Send a confirmation to the user
             await interaction.reply({
-                embeds: [new EmbedBuilder()
-                            .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                            .setTitle(`🛑 Error Occured 🛑`)
-                            .setDescription(`You have already submitted a bounty`)
-                            .addFields([
-                                {
-                                    name: `🚧Command Used`,
-                                    value: "`/ravi-submit`",
-                                },
-                                {
-                                    name: '📜Error message',
-                                    value: ">>> You most likely already sent a submission.",
-                                },
-                            ])
-                            .setColor(15844367)
-                            .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
-                            .setTimestamp()
-                        ],
+                content: `Your bounty is submited`,
+                files: [
+                    `${interaction.options.getAttachment('image').url}`
+                ]
             });
-            return;
+            
+            await submissionManager.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
+            
+        } catch (err) {
+            const errorEmbeds = new EmbedBuilder()
+                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                .setTitle(`🛑 Error Occured 🛑`)
+                .setDescription(`Some error can't be handled`)
+                .addFields([
+                    {
+                        name: `🚧Command Used`,
+                        value: "`/ravi-submit`",
+                    },
+                    {
+                        name: '📜Error message',
+                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                    },
+                ])
+                .setColor(15844367)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setTimestamp();
+            await interaction.reply({
+                embeds: [errorEmbeds],
+            });
+            await client.channels.cache.get(guildConfig.channels.errors).send({
+                embeds: [errorEmbeds],
+            });
         }
-
-        //Send an interaction to the moderation team
-        const sentMessage = await client.channels.cache.get(reviewChannelId).send({
-            embeds: [new EmbedBuilder()
-                            .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                            .setTitle(`Raviente's Bounty Submission`)
-                            .addFields([
-                                {
-                                    name: 'User',
-                                    value: `<@${interaction.member.id}>`,
-                                    inline: true,
-                                },
-                                {
-                                    name: 'In-game Name',
-                                    value: `${dbData.inGameName}`,
-                                    inline: true,
-                                },
-                                {
-                                    name: `Batch`,
-                                    value: `Batch ${interaction.options.get('batch').value}`,
-                                    inline: true,
-                                },
-                            ])
-                            .setImage(interaction.options.getAttachment('image').url)
-                            .setColor(15844367)
-                            .setTimestamp()
-                    ],
-        });
-
-        //Send a confirmation to the user
-        await interaction.reply({
-            content: `Your bounty is submited`,
-            files: [
-                `${interaction.options.getAttachment('image').url}`
-            ]
-        });
-        
-        await submissionManager.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
-
     },
 
     name: 'ravi-submit',

@@ -61,8 +61,29 @@ module.exports = {
             });
 
         } catch (err) {
-            console.log(`Error running Button: ${err}`);
-            await interaction.reply({ content: 'There was an error with that button interaction.', flags: MessageFlags.Ephemeral });
+            const errorEmbeds = new EmbedBuilder()
+                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                .setTitle(`🛑 Error Occured 🛑`)
+                .setDescription(`Some error can't be handled`)
+                .addFields([
+                    {
+                        name: `🚧Button Used`,
+                        value: "`batch-confirm`",
+                    },
+                    {
+                        name: '📜Error message',
+                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                    },
+                ])
+                .setColor(15844367)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setTimestamp();
+            await interaction.reply({
+                embeds: [errorEmbeds],
+            });
+            await client.channels.cache.get(guildConfig.channels.errors).send({
+                embeds: [errorEmbeds],
+            });
         }
     },
 

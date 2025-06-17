@@ -14,16 +14,42 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async(client, interaction, params) => {
-        const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
-        await batchReviewerInstance.loadFile();
-
-        batchReviewerInstance.prevPage();
-
-        await interaction.update({
-            embeds: [batchReviewerInstance.generateEmbed()],
-            components: batchReviewerInstance.buildComponents()
-        });
-
-        batchManager.saveState();
-    }
+            try {
+                const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
+                await batchReviewerInstance.loadFile();
+        
+                batchReviewerInstance.prevPage();
+        
+                await interaction.update({
+                    embeds: [batchReviewerInstance.generateEmbed()],
+                    components: batchReviewerInstance.buildComponents()
+                });
+        
+                batchManager.saveState();
+            } catch (err) {
+                const errorEmbeds = new EmbedBuilder()
+                    .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                    .setTitle(`🛑 Error Occured 🛑`)
+                    .setDescription(`Some error can't be handled`)
+                    .addFields([
+                        {
+                            name: `🚧Button Used`,
+                            value: "`prev-page`",
+                        },
+                        {
+                            name: '📜Error message',
+                            value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                        },
+                    ])
+                    .setColor(15844367)
+                    .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                    .setTimestamp();
+                await interaction.reply({
+                    embeds: [errorEmbeds],
+                });
+                await client.channels.cache.get(guildConfig.channels.errors).send({
+                    embeds: [errorEmbeds],
+                });
+            }
+        }
 };

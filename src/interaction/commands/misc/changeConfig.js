@@ -1,6 +1,5 @@
 "use strict" ;
-const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, PermissionFlagsBits } = require("discord.js");
-const fs = require('fs');
+const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { updateGuildConfig } = require('../../../utils/guildConfig');
 
 module.exports = {
@@ -11,20 +10,47 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
-        const subCommand = interaction.options.getSubcommand();
-        const guildId = interaction.guildId;
-
-        const type = interaction.options.getString('type');
-        const channel = interaction.options.getChannel('channel')
-
-        updateGuildConfig(guildId, (cfg) => {
-            cfg.channels[type] = channel.id;
-        });
-
-        await interaction.reply({
-            content: `✅ Channel for **${type}** set to <#${channel.id}>.`,
-            flags: MessageFlags.Ephemeral
-        });
+        try {
+            const subCommand = interaction.options.getSubcommand();
+            const guildId = interaction.guildId;
+    
+            const type = interaction.options.getString('type');
+            const channel = interaction.options.getChannel('channel')
+    
+            updateGuildConfig(guildId, (cfg) => {
+                cfg.channels[type] = channel.id;
+            });
+    
+            await interaction.reply({
+                content: `✅ Channel for **${type}** set to <#${channel.id}>.`,
+                flags: MessageFlags.Ephemeral
+            });
+        } catch (err) {
+            const errorEmbeds = new EmbedBuilder()
+                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                .setTitle(`🛑 Error Occured 🛑`)
+                .setDescription(`Some error can't be handled`)
+                .addFields([
+                    {
+                        name: `🚧Command Used`,
+                        value: "`/ravi-config`",
+                    },
+                    {
+                        name: '📜Error message',
+                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                    },
+                ])
+                .setColor(15844367)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setTimestamp();
+            await interaction.reply({
+                embeds: [errorEmbeds],
+                flags: MessageFlags.Ephemeral
+            });
+            await client.channels.cache.get(guildConfig.channels.errors).send({
+                embeds: [errorEmbeds],
+            });
+        }
     },
 
     name: 'ravi-config',

@@ -20,7 +20,7 @@ function saveConfig() {
 function getGuildConfig(guildId) {
     const cfg = loadConfig();
     if (!cfg[guildId]) {
-        cfg[guildId]  = { channels: {}, permissions: {} };
+        cfg[guildId]  = { channels: {} };
         saveConfig();
     }
     return cfg[guildId];

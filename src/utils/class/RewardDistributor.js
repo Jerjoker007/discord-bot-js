@@ -175,7 +175,7 @@ class RewardDistributor {
         updatedBountyCoins,
         updatedGachaTickets,
       ]
-    )
+    );
   }
 
   async distribute() {

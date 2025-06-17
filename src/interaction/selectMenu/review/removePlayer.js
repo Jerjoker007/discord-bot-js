@@ -2,6 +2,7 @@
 const { Client, Interaction, MessageFlags } = require('discord.js');
 const { submissionManager, batchManager} = require('../../../state/globalState');
 const BatchReviewer = require('../../../utils/class/BatchReviewer');
+const { getGuildConfig } = require('../../../utils/guildConfig');
 module.exports = {
 
     name: 'remove-player',
@@ -15,6 +16,7 @@ module.exports = {
      */
     callback: async (client, interaction, params) => {
         try {
+            const guildInfo = getGuildConfig(params.batchKey);
             const batchReviewerInstance = batchManager.fetchBatch(params.batchKey);
             await batchReviewerInstance.loadFile();
 
@@ -56,6 +58,9 @@ module.exports = {
                 return;
             }
 
+            await client.channels.cache.get(guildInfo.channels.receptionist).send({
+                content: `<@${interaction.values[0]}> your submission was rejected by ${interaction.user.username}.`,
+            });
             await interaction.update({
                 embeds: [batchReviewerInstance.generateEmbed()],
                 components: batchReviewerInstance.buildComponents()

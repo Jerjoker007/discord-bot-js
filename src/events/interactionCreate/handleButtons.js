@@ -3,6 +3,7 @@ const { Client, Interaction, MessageFlags } = require('discord.js');
 const { devs } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
 const getLocalButtons = require('../../utils/getLocalButtons');
+const { getGuildConfig } = require('../../utils/guildConfig');
 
 /**
  * 
@@ -18,6 +19,13 @@ module.exports = async (client, interaction) => {
 
     if (botName !== 'ravi') return;
     
+    if (params?.interactionUserId && params.interactionUserId !== interaction.member.id) {
+        return await interaction.reply({
+            content: `❌ You cannot use that button, only the creator of the command can use it.`,
+            flags: MessageFlags.Ephemeral,
+        });
+    }
+
     try {
         const buttonObject = localButtons.find(btn => btn.name === action);
     
