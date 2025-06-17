@@ -1,6 +1,6 @@
 # 🐍 Raviente Event Bot (Rain Discord Server)
 
-A custom Discord bot developed for the **Rain** server to manage **Raviente batch submissions** during our Monster Hunter Frontier Z Zenith events.
+A custom Discord bot developed for the **Rain** server to manage **Raviente batch submissions** during events.
 
 This bot simplifies the submission, review, and logging process of player screenshots related to the Raviente event.
 
