@@ -1,6 +1,4 @@
 .env
-submittedUsers.json
-raviRewards.json
-activeBatchReviews.json
+data/
 config.json
 guildData.json
