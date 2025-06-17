@@ -54,6 +54,7 @@ module.exports = {
 
     name: 'ravi-config',
     description: `Configure server settings.`,
+    devOnly: true,
     options: [
         {
             name: 'channel',
