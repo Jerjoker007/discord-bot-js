@@ -172,7 +172,7 @@ module.exports = {
 
     name: 'ravi-submit',
     description: `Submission for the Raviente's raid event`,
-    // devOnly: Boolean,
+    devOnly: true,
     // testOnly: Boolean,
     options: [
         {

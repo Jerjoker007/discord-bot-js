@@ -100,7 +100,7 @@ module.exports = {
 
     name: 'ravi-batch-review',
     description: `Review a batch's submission`,
-    // devOnly: Boolean,
+    devOnly: true,
     // testOnly: Boolean,
     options: [
         {

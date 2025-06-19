@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { Mutex } = require('async-mutex');
 
-const filePath = path.join(__dirname, '../data/submission/submittedUsers.json');
+const filePath = path.resolve(__dirname, '../data/submission/submittedUsers.json');
 let cache = {};
 const mutex = new Mutex();
 
@@ -60,9 +60,6 @@ module.exports = {
             cache[batchKey][userId] = {
                 char_id: dbData.char_id,
                 inGameName: dbData.inGameName,
-                bounty: dbData.bounty,
-                gacha: dbData.gacha,
-                bcMultiplier: dbData.bcMultiplier,
                 channelId: `${channelId}`,
                 messageId: `${messageId}`
             };

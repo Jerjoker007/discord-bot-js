@@ -28,198 +28,188 @@ class RewardDistributor {
   }
 
   getUserIds() {
-    if (!this.batchData || !this.batchData) return [];
+    if (!this.batchData) return [];
     return Object.keys(this.batchData);
   }
 
   getCharacterIds() {
-    if (!this.batchData || !this.batchData) return [];
+    if (!this.batchData) return [];
     return Object.values(this.batchData).map(entry => parseInt(entry.char_id));
   }
 
   getRewardData() {
     if (!this.rewardData) return null;
     const { bountyCoins, gachaTickets, items } = this.rewardData;
-    return { bountyCoins, gachaTickets, items };
-  }
-
-  formatHex(num, padding) {
-    return num.toString(16).toUpperCase().padStart(padding, "0");
+    return { 
+      bountyCoins, 
+      gachaTickets, 
+      items: items.map((item) => ({
+        ...item,
+        code: parseInt(this.reverseHex(item.code), 16)
+      })) 
+    };
   }
 
   reverseHex(hex) {
     return hex.slice(2, 4) + hex.slice(0, 2);
   }
 
-  toHexString() {
-    if (this.rewardData.items.length === 0) {
-      return
-    }
-
-    let result = this.formatHex(this.rewardData.items.length, 4);
-    for (const item of this.rewardData.items) {
-      result += `${this.formatHex(item.type, 2)}0000${this.reverseHex(item.code)}0000${this.formatHex(item.amount, 4)}00000000`;
-    }
-    return result;
+  formatNumber(value) {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
   }
 
-  hexToItems(hexData) {
-    const itemCount = parseInt(hexData.slice(0, 4), 16);
-
-    const items = [];
-    let index = 4;
-
-    for (let i = 0; i < itemCount; i++) {
-        const type = parseInt(hexData.slice(index, index + 2), 16);
-        index += 6; // 2 hex digits + 4 (padding "0000")
-
-        const code = parseInt(hexData.slice(index, index + 4), 16);
-        index += 8; // 4 hex digits + 4 (padding "0000")
-
-        const count = parseInt(hexData.slice(index, index + 4), 16);
-        index += 12; // 4 hex digits + 8 (padding "00000000")
-
-        items.push({
-            types: type,
-            data: code,
-            quantity: count,
-        });
+  async distributeItems(charIds, rewards, dbTransaction) {
+    if (!rewards.items || !rewards.bountyCoins || !rewards.gachaTickets) {
+      return;
     }
 
-    return items;
-  }
+    const charCount = charIds.length;
+    const typesArray = Array(charCount).fill(1);
+    const botsArray = Array(charCount).fill(false);
+    const eventNames = Array(charCount).fill('Event BBQ25');
+    const descriptions = Array(charCount).fill("~C05 Raviente's Bounty");
 
+    const itemTypes = [];
+    const itemCodes = [];
+    const itemAmounts = [];
 
-  async distributeItems(charIds, hex) {
-    if (hex === undefined) return;
+    for (const item of rewards.items) {
+      itemTypes.push(item.type);
+      itemCodes.push(item.code);
+      itemAmounts.push(item.amount)
+    }
 
-    const dataBuffer = Buffer.from(hex, 'hex');
-
-    const insertDistributionQuery = await this.db.query(
+    await dbTransaction.query(
       `
-        INSERT INTO distribution (char_id,data,type,bot,event_name,description)
-        SELECT * FROM UNNEST($1::int[], $2::bytea[], $3::int[], $4::bool[], $5::text[], $6::text[])
-        RETURNING id
+        WITH dist AS (
+          INSERT INTO distribution (char_id, type, bot, event_name, description)
+          SELECT * FROM
+            UNNEST ($1::INT[], $2::INT[], $3::BOOL[], $4::TEXT[], $5::TEXT[])
+          RETURNING id
+        )
+        INSERT INTO distribution_items (distribution_id, item_type, item_id, quantity)
+        SELECT dist.id, u.type, u.code, u.amount
+        FROM dist
+          CROSS JOIN UNNEST($6::INT[], $7::INT[], $8::INT[])
+          AS u(type, code, amount)
       `,
       [
         charIds,
-        Array(charIds.length).fill(dataBuffer),
-        Array(charIds.length).fill(1),
-        Array(charIds.length).fill(false),
-        Array(charIds.length).fill('Event BBQ25'),
-        Array(charIds.length).fill(`~C05 Raviente's Bounty`)
-      ]
-    );
-
-    const distIds = insertDistributionQuery.rows.map((row) => row.id);
-
-    const ids = [];
-    const types = [];
-    const codes = [];
-    const amounts = [];
-
-    const items = this.hexToItems(hex);
-    for (const distId of distIds) {
-      for (const item of items) {
-        ids.push(distId);
-        types.push(item.types);
-        codes.push(item.data);
-        amounts.push(item.quantity);
-      }
-    }
-
-    await this.db.query(
-      `
-        INSERT INTO distribution_items (distribution_id, item_type, item_id, quantity)
-        SELECT * FROM UNNEST($1::int[], $2::int[], $3::int[], $4::int[])
-      `,
-      [
-        ids,
-        types,
-        codes,
-        amounts
+        typesArray,
+        botsArray,
+        eventNames,
+        descriptions,
+        itemTypes,
+        itemCodes,
+        itemAmounts
       ]
     );
   }
 
-  async distributeDiscordRewards(rewards) {
-    const userEntries = Object.entries(this.batchData);
+  async distributeDiscordRewards(userEntries, rewards, dbTransaction) {
+    
+    const userIds = userEntries.map(([userId]) => userId);
 
-    const userIds = [];
-    const updatedBountyCoins = [];
-    const updatedGachaTickets = [];
-
-    for (const [userId, data] of userEntries) {
-      userIds.push(userId);
-      updatedBountyCoins.push((data.bounty + (rewards.bountyCoins * (1.0 + data.bcMultiplier))));
-      updatedGachaTickets.push((data.gacha + rewards.gachaTickets));
-    }
-
-    await this.db.query(
+    const result = await dbTransaction.query(
       `
         UPDATE discord d SET 
-          bounty = data.new_bounty,
-          gacha = data.new_gacha
+          bounty = d.bounty + (
+            CASE
+              WHEN d.title > 4 THEN $2 * 1.4
+              WHEN d.title >= 2 THEN $2 * 1.2
+              WHEN d.title = 1 THEN $2 * 1.1
+              ELSE $2
+            END
+          ),
+          gacha = d.gacha + $3
         FROM (
-          SELECT
-            UNNEST($1::text[]) AS discord_id,
-            UNNEST($2::int[]) AS new_bounty,
-            UNNEST($3::int[]) AS new_gacha
+          SELECT UNNEST($1::text[]) AS discord_id
         ) AS data
         WHERE d.discord_id = data.discord_id
+        RETURNING d.discord_id, d.title,
+          CASE
+            WHEN d.title > 4 THEN  0.4
+            WHEN d.title >= 2 THEN 0.2
+            WHEN d.title = 1 THEN 0.1
+            ELSE 0.0
+          END AS bc_multiplier
       `,
       [
         userIds,
-        updatedBountyCoins,
-        updatedGachaTickets,
+        rewards.bountyCoins,
+        rewards.gachaTickets,
       ]
     );
+
+    for (const row of result.rows) {
+      const { discord_id, bc_multiplier } = row;
+
+      if (this.batchData[discord_id]) {
+        this.batchData[discord_id].bcMultiplier = bc_multiplier;
+      }
+    }
   }
 
-  async createBountyMessage(rewards) {
+  async createBountyMessage( rewards) {
     const messages = [];
-    for (const [userId, data] of Object.entries(this.batchData)) {
-      const user = await this.interaction.client.users.fetch(userId);
-      const content = `<@${userId}>'s Solo Event BBQ25 Reward already distributed`;
-      let itemsField = '>>> ';
-      for (const item of rewards.items) {
-        itemsField += `${item.name} x${item.amount}\n`;
-      }
+    const usersIds = Object.keys(this.batchData);
+
+    const users = await Promise.all(usersIds.map(id => this.interaction.client.users.fetch(id)));
+
+    for (let i = 0; i < usersIds.length; i++) {
+      const userId = usersIds[i];
+      const user = users[i];
+      const data = this.batchData[userId];
+
+      const mention = `<@${userId}>`;
+      const content = `${mention}'s Solo Event BBQ25 Reward already distributed`;
+
+      const itemsField = '>>> ' + rewards.items.map(item => `${item.name} x${item.amount}`).join('\n');
+
+      const multiplier = parseFloat(data.bcMultiplier) ?? 0.0;
+      const bonusPercent = (100 * multiplier).toFixed(0); 
+      const bonusAmount = (rewards.bountyCoins * (1.0 + multiplier)).toFixed(0);
+
       const embeds = new EmbedBuilder()
             .setAuthor({ name: `${user.username}`, iconURL: user.displayAvatarURL() })
             .setTitle('Bounty Reward')
-            .setDescription(`<@${userId}>'s reward for Solo BBQ25 category Event`)
+            .setDescription(`${mention}'s reward for Solo BBQ25 category Event`)
             .setColor(0x94fc03)
             .addFields([ 
-              { name: 'Bounty Coin', value: `Bounty Reward: Bc ${rewards.bountyCoins}\nTitle Bonus: ${100 * data.bcMultiplier}%\nReward with Bonus: Bc ${rewards.bountyCoins * (1.0 + data.bcMultiplier)}`},
+              { name: 'Bounty Coin', value: `Bounty Reward: Bc ${this.formatNumber(rewards.bountyCoins)}\nTitle Bonus: ${bonusPercent}%\nReward with Bonus: Bc ${this.formatNumber(bonusAmount)}`},
               { name: 'Gacha Tickets', value: `Ticket Reward: ${rewards.gachaTickets} Ticket(s)`},
               { name: 'Items/Equipment', value: itemsField }
             ]);
+      
       messages.push({ content, embeds: [embeds]});
     }
+
     return messages;
   }
 
   async distribute() {
 
-    const userIds = this.getUserIds();
+    const userEntries = Object.entries(this.batchData);
+    console.log(userEntries);
     const characterIds = this.getCharacterIds();
     const rewards = this.getRewardData();
 
-    if (!userIds.length || !rewards || !characterIds.length) {
+    if (!userEntries.length || !rewards || !characterIds.length) {
       throw new Error('Missing user, reward data or character.');
     }
 
-    console.log("Distributing to users:", userIds);
+    console.log("Distributing to users:", this.getUserIds());
     console.log("With rewards:", rewards);
 
     const dbTransaction = await this.db.connect();
     try {
-      const hex = this.toHexString();
       await dbTransaction.query('BEGIN');
 
-      await this.distributeItems(characterIds, hex);
-      await this.distributeDiscordRewards(rewards);
+      await this.distributeItems(characterIds, rewards, dbTransaction);
+      await this.distributeDiscordRewards(userEntries, rewards, dbTransaction);
 
       await dbTransaction.query('COMMIT');
 
