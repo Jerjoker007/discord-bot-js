@@ -55,7 +55,7 @@ class RewardDistributor {
   }
 
   formatNumber(value) {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('de-CH', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     }).format(value);
