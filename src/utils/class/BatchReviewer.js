@@ -78,7 +78,7 @@ class BatchReviewer {
             .setDescription(`Currently viewing page ${this.currentPage + 1}.`)
             .setColor(0x94fc03)
             .addFields(fields)
-            .setAuthor({ name: `${this.interactionUser.username}`, iconURL: `${this.interactionUser.avatarURL}` })
+            .setAuthor({ name: this.interactionUser.username, iconURL: this.interactionUser.avatarURL })
             .setTimestamp();
     }
 

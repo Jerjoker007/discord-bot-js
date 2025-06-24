@@ -1,15 +1,9 @@
 "use strict";
-const path = require('path');
-const rewardDataPath = path.join(__dirname, '../../../data/review/raviRewards.json');
-const { submissionManager, batchManager } = require('../../../state/globalState');
-const RewardDistributor = require('../../../utils/class/RewardDistributor');
+const { batchManager } = require('../../../state/globalState');
 const { getGuildConfig } = require('../../../utils/guildConfig');
+const { encodeCustomId } = require('../../../utils/customId');
 const { ownerInfos } = require('../../../state/globalState');
-const { Client, Interaction, ActionRowBuilder, ButtonBuilder, MessageFlags, EmbedBuilder } = require('discord.js');
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const { Client, Interaction, ActionRowBuilder, ButtonBuilder, MessageFlags, EmbedBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
 
@@ -23,36 +17,13 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async (client, interaction, params) => {
+
+        await interaction.deferUpdate();
+
         const guildConfig = getGuildConfig(interaction.guild.id);
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
         const ownerInfo = await ownerInfos.get(client);
         try {
-            const batchDistribution = new RewardDistributor(rewardDataPath, params.batchKey, interaction, client.db);
-            
-            await batchDistribution.loadFiles();
-            const dsitributionMessages = await batchDistribution.distribute();
-
-            const messages = await submissionManager.fetchBatchMessages(params.batchKey);
-
-            for (const message of messages) {
-                try {
-                    const fetchedMessage = await client.channels.cache.get(message.channelId).messages.fetch(message.messageId);
-
-                    await fetchedMessage.edit({
-                        content: '✅ This submission has been accepted.',
-                        components: []
-                    });
-                } catch (err) {
-                    if (err.code === 10008) {
-                        console.warn(`Message ${message.messageId} in channel ${message.channelId} was not found. Skipping.`);
-                    } else {
-                        console.error(`Error updating message ${message.messageId}:`, err);
-                    }
-                }
-            }
-
-            await submissionManager.unmarkBatch(params.batchKey);
-            await batchManager.deleteBatch(params.batchKey);
 
             const components = interaction.message.components.map(row => {
                 // Filter only buttons and disable them
@@ -64,20 +35,53 @@ module.exports = {
                 return buttons.length > 0 ? new ActionRowBuilder().addComponents(buttons) : null;
             }).filter(row => row !== null);
 
-            await interaction.update({
-                content: '✅ This batch has been accepted.',
+            await interaction.message.edit({
+                content: '🔄 Working on it, please wait...',
                 components
             });
 
-            for (const message of dsitributionMessages) {
-                await client.channels.cache.get(guildConfig.channels.receptionist).send(message);
-                await delay(500);
-            }
+            await batchManager.deleteBatch(params.batchKey);
+
+            const embeds = new EmbedBuilder()
+                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
+                .setTitle(`Batch Distribution`)
+                .setDescription(`Final step before distribution is done.`)
+                .addFields([
+                    {
+                        name: `Batch`,
+                        value: `Batch ${params.batchKey.split('-')[1]}`
+                    }
+                ])
+                .setColor(15844367)
+                .setTimestamp();
+
+            const confirmationRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`${encodeCustomId(
+                    'ravi',
+                    'batch-distribution',
+                    {
+                        batchKey: params.batchKey,
+                        interactionUserId: params.interactionUserId,
+                    }
+                    )}`)
+                    .setLabel('Distribute')
+                    .setStyle(ButtonStyle.Success)
+            );
+            await interaction.followUp({
+                embeds:[embeds],
+                components: [confirmationRow]
+            })
+
+            await interaction.message.edit({
+                content: '✅ This batch has been reviewed.'
+            });
 
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
-                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                .setTitle(`🛑 Error Occured 🛑`)
+                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
+                .setThumbnail(client.user.displayAvatarURL())
+                .setTitle(`🛑 Error Occurred 🛑`)
                 .setDescription(`Some error can't be handled`)
                 .addFields([
                     {
@@ -86,17 +90,24 @@ module.exports = {
                     },
                     {
                         name: '📜Error message',
-                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                        value: `>>> Error code: ${err.code ?? 'N/A'}\nError message: ${err.message ?? 'No message provided'}`,
+                    },
+                    {
+                        name: `⛑ Author's advice`,
+                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
                     },
                 ])
-                .setColor(15844367)
-                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setColor(0x94fc03)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: ownerInfo.avatarURL })
                 .setTimestamp();
+
             await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await interaction.reply({
-                embeds: [errorEmbeds],
+
+            await interaction.message.edit({
+                content: '🛑 Error Occured, check with moderators 🛑',
+                components: [] // Disable buttons to prevent further interactions if relevant
             });
         }
     },

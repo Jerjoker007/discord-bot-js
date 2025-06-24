@@ -29,8 +29,9 @@ module.exports = {
             });
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
-                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                .setTitle(`🛑 Error Occured 🛑`)
+                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
+                .setThumbnail(client.user.displayAvatarURL())
+                .setTitle(`🛑 Error Occurred 🛑`)
                 .setDescription(`Some error can't be handled`)
                 .addFields([
                     {
@@ -39,11 +40,15 @@ module.exports = {
                     },
                     {
                         name: '📜Error message',
-                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                        value: `>>> Error code: ${err.code ?? 'N/A'}\nError message: ${err.message ?? 'No message provided'}`,
+                    },
+                    {
+                        name: `⛑ Author's advice`,
+                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
                     },
                 ])
-                .setColor(15844367)
-                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setColor(0x94fc03)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: ownerInfo.avatarURL})
                 .setTimestamp();
             await interaction.reply({
                 embeds: [errorEmbeds],

@@ -25,6 +25,9 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async (client, interaction) => {
+
+        await interaction.deferReply();
+
         const guildConfig = getGuildConfig(interaction.guild.id);
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
         const ownerInfo = await ownerInfos.get(client);
@@ -32,7 +35,7 @@ module.exports = {
     
             const err = validateCommandAccess(interaction, guildConfig.channels?.review, guildConfig);
             if (err) {
-                return await interaction.reply({
+                return await interaction.editReply({
                     content: `❌ ${err}`,
                     flags: MessageFlags.Ephemeral
                 });
@@ -41,7 +44,7 @@ module.exports = {
             const batchKey = `batch-${interaction.options.get('batch').value}`;
     
             if (await batchManager.fetchBatch(batchKey)) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: `⚠️ This batch is already being reviewed.`,
                     flags: MessageFlags.Ephemeral
                 });
@@ -50,7 +53,7 @@ module.exports = {
             const players = await submissionManager.fetchBatch(batchKey);
     
             if (Object.keys(players).length < 1) {
-                return interaction.reply({
+                return interaction.editReply({
                     content: `❌ This batch is empty and cannot be reviewed.`,
                     flags: MessageFlags.Ephemeral
                 });
@@ -65,16 +68,17 @@ module.exports = {
             const batchReviewerInstance = new BatchReviewer(batchKey, interactionUser);
             await batchReviewerInstance.loadFile();
             
-            await interaction.reply({
+            await interaction.editReply({
                 embeds: [batchReviewerInstance.generateEmbed()],
-                components: batchReviewerInstance.buildComponents()
+                components: batchReviewerInstance.buildComponents(),
             });
     
             await batchManager.addBatch(batchKey, batchReviewerInstance);
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
-                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                .setTitle(`🛑 Error Occured 🛑`)
+                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl })
+                .setThumbnail(client.user.displayAvatarURL())
+                .setTitle(`🛑 Error Occurred 🛑`)
                 .setDescription(`Some error can't be handled`)
                 .addFields([
                     {
@@ -83,18 +87,33 @@ module.exports = {
                     },
                     {
                         name: '📜Error message',
-                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                        value: `>>> Error code: ${err.code ?? 'N/A'}\nError message: ${err.message ?? 'No message provided'}`,
+                    },
+                    {
+                        name: `⛑ Author's advice`,
+                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
                     },
                 ])
-                .setColor(15844367)
-                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setColor(0x94fc03)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL:  ownerInfo.avatarURL })
                 .setTimestamp();
+                
             await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await interaction.reply({
-                embeds: [errorEmbeds],
-            });
+            if (interaction.deferred && !interaction.replied) {
+                await interaction.editReply({
+                    embeds:[errorEmbeds]
+                });
+            } else if (!interaction.replied) {
+                await interaction.reply({
+                    embeds: [errorEmbeds]
+                });
+            } else {
+                await interaction.followUp({
+                    embeds: [errorEmbeds]
+                });
+            }
         }
     },
 

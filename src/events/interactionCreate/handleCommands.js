@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { MessageFlags } = require('discord.js');
-const { devs, testServer } = require('../../../config.json');
+const { devs, testers, testServer } = require('../../../config.json');
 const getLocalCommands = require('../../utils/getLocalCommands');
 const { getGuildConfig } = require('../../utils/guildConfig');
 
@@ -23,6 +23,14 @@ module.exports = async (client, interaction) => {
                     flags: MessageFlags.Ephemeral,
                 });
                 return;
+            }
+        }
+        if (commandObject.testing) {
+            if (!interaction.member.roles.cache.has(testers)) {
+                return interaction.reply({
+                    content: 'Only testers are allowed to run this command.',
+                    flags: MessageFlags.Ephemeral,
+                });
             }
         }
         if (commandObject.testOnly) {

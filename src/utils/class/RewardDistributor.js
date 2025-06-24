@@ -124,7 +124,8 @@ class RewardDistributor {
               ELSE $2
             END
           ),
-          gacha = d.gacha + $3
+          gacha = d.gacha + $3,
+          latest_bounty = '4_24'
         FROM (
           SELECT UNNEST($1::text[]) AS discord_id
         ) AS data
@@ -193,7 +194,6 @@ class RewardDistributor {
   async distribute() {
 
     const userEntries = Object.entries(this.batchData);
-    console.log(userEntries);
     const characterIds = this.getCharacterIds();
     const rewards = this.getRewardData();
 

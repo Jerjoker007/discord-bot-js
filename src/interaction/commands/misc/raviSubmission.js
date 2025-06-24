@@ -11,15 +11,18 @@ module.exports = {
      * @param {Interaction} interaction
      */
     callback: async (client, interaction) => {
+
+        await interaction.deferReply();
+
         const guildConfig = getGuildConfig(interaction.guild.id);
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
         const ownerInfo = await ownerInfos.get(client);
         try {
+
             const err = validateCommandAccess(interaction, guildConfig.channels?.receptionist, guildConfig);
             if (err) {
-                return await interaction.reply({
+                return await interaction.editReply({
                     content: `❌ ${err}`,
-                    flags: MessageFlags.Ephemeral
                 });
             }
 
@@ -29,7 +32,7 @@ module.exports = {
             const dbData = await getDbData(client.db, interaction.member.id);
     
             if (!dbData || !dbData.char_id) {
-                await interaction.reply({
+                await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
                                 .setTitle(`🛑 Error Occured 🛑`)
@@ -56,7 +59,7 @@ module.exports = {
             //Check if the attachment is an image
             if (!interaction.options.getAttachment('image').contentType?.startsWith('image/')) {
                 
-                await interaction.reply({
+                await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
                                 .setTitle(`🛑 Error Occured 🛑`)
@@ -82,7 +85,7 @@ module.exports = {
             
             //Check if the user already submitted a bounty
             if (await submissionManager.hasUserSubmitted(interaction.member.id)) {
-                await interaction.reply({
+                await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
                                 .setTitle(`🛑 Error Occured 🛑`)
@@ -105,10 +108,11 @@ module.exports = {
                 return;
             }
     
+            const attachment = interaction.options.getAttachment('image');
             //Send an interaction to the moderation team
             const sentMessage = await client.channels.cache.get(guildConfig.channels.review).send({
                 embeds: [new EmbedBuilder()
-                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
                                 .setTitle(`Raviente's Bounty Submission`)
                                 .addFields([
                                     {
@@ -118,7 +122,7 @@ module.exports = {
                                     },
                                     {
                                         name: 'In-game Name',
-                                        value: `${dbData.inGameName}`,
+                                        value: dbData.inGameName,
                                         inline: true,
                                     },
                                     {
@@ -127,26 +131,26 @@ module.exports = {
                                         inline: true,
                                     },
                                 ])
-                                .setImage(interaction.options.getAttachment('image').url)
+                                .setImage(`attachment://${attachment.name}`)
                                 .setColor(0x94fc03)
                                 .setTimestamp()
                         ],
+                files: [attachment],
             });
     
             //Send a confirmation to the user
-            await interaction.reply({
-                content: `Your bounty is submited`,
-                files: [
-                    `${interaction.options.getAttachment('image').url}`
-                ]
+            await interaction.editReply({
+                content: `Your bounty in **Batch ${interaction.options.get('batch').value}** is submitted`,
+                files: [attachment]
             });
             
             await submissionManager.markSubmittedUser(`batch-${interaction.options.get('batch').value}`, interaction.member.id, dbData, sentMessage.channel.id, sentMessage.id);
             
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
-                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
-                .setTitle(`🛑 Error Occured 🛑`)
+                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
+                .setThumbnail(client.user.displayAvatarURL())
+                .setTitle(`🛑 Error Occurred 🛑`)
                 .setDescription(`Some error can't be handled`)
                 .addFields([
                     {
@@ -155,24 +159,39 @@ module.exports = {
                     },
                     {
                         name: '📜Error message',
-                        value: `>>> Error code:${err.code}\nError message:${err.message}`,
+                        value: `>>> Error code: ${err.code ?? 'N/A'}\nError message: ${err.message ?? 'No message provided'}`,
+                    },
+                    {
+                        name: `⛑ Author's advice`,
+                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
                     },
                 ])
-                .setColor(15844367)
-                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setColor(0x94fc03)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: ownerInfo.avatarURL })
                 .setTimestamp();
+
             await client.channels.cache.get(guildConfig.channels.errors).send({
                 embeds: [errorEmbeds],
             });
-            await interaction.reply({
-                embeds: [errorEmbeds],
-            });
+            if (interaction.deferred && !interaction.replied) {
+                await interaction.editReply({
+                    embeds:[errorEmbeds]
+                });
+            } else if (!interaction.replied) {
+                await interaction.reply({
+                    embeds: [errorEmbeds]
+                });
+            } else {
+                await interaction.followUp({
+                    embeds: [errorEmbeds]
+                });
+            }
         }
     },
 
     name: 'ravi-submit',
     description: `Submission for the Raviente's raid event`,
-    devOnly: true,
+    testing: true,
     // testOnly: Boolean,
     options: [
         {

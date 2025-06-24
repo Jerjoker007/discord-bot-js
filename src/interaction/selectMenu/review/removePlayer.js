@@ -1,6 +1,6 @@
 "use strict" ;
-const { Client, Interaction, MessageFlags } = require('discord.js');
-const { submissionManager, batchManager} = require('../../../state/globalState');
+const { Client, Interaction, MessageFlags, EmbedBuilder } = require('discord.js');
+const { submissionManager, batchManager, ownerInfos} = require('../../../state/globalState');
 const BatchReviewer = require('../../../utils/class/BatchReviewer');
 const { getGuildConfig } = require('../../../utils/guildConfig');
 module.exports = {
@@ -15,8 +15,13 @@ module.exports = {
      * @param {Object} params 
      */
     callback: async (client, interaction, params) => {
+        await interaction.deferUpdate();
+
+        const guildConfig = getGuildConfig(interaction.guild.id);
+        const userAvatarUrl = interaction.member.user.displayAvatarURL();
+        const ownerInfo = await ownerInfos.get(client);
         try {
-            const guildInfo = getGuildConfig(interaction.guild.id);
+
             const batchReviewerInstance = await batchManager.fetchBatch(params.batchKey);
             await batchReviewerInstance.loadFile();
 
@@ -41,16 +46,15 @@ module.exports = {
             batchReviewerInstance.removePlayerById(interaction.values[0]);
             submissionManager.unmarkSubmittedUser(interaction.values[0], params.batchKey);
 
-            await client.channels.cache.get(guildInfo.channels.receptionist).send({
+            await client.channels.cache.get(guildConfig.channels.receptionist).send({
                 content: `<@${interaction.values[0]}> your submission was rejected by ${interaction.user.username}.`,
             });
 
             if (!batchReviewerInstance.getAllPlayers().length) {
                 
-                await interaction.deferUpdate();
                 await interaction.message.delete();
 
-                await interaction.followUp({
+                await interaction.channel.send({
                     content: 'The batch is now empty and has been removed.',
                     flags: MessageFlags.Ephemeral
                 });
@@ -62,13 +66,42 @@ module.exports = {
                 return;
             }
 
-            await interaction.update({
+            await interaction.message.edit({
                 embeds: [batchReviewerInstance.generateEmbed()],
                 components: batchReviewerInstance.buildComponents()
             });
 
         } catch (err) {
-            console.log(`Error running remove player: ${err}`);
+            const errorEmbeds = new EmbedBuilder()
+                            .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl })
+                            .setThumbnail(client.user.displayAvatarURL())
+                            .setTitle(`🛑 Error Occurred 🛑`)
+                            .setDescription(`Some error can't be handled`)
+                            .addFields([
+                                {
+                                    name: `🚧Select Menu Used`,
+                                    value: "`remove-player`",
+                                },
+                                {
+                                    name: '📜Error message',
+                                    value: `>>> Error code: ${err.code ?? 'N/A'}\nError message: ${err.message ?? 'No message provided'}`,
+                                },
+                                {
+                                    name: `⛑ Author's advice`,
+                                    value: "```Error is written by the bot itself, please read the message carefully and contact```",
+                                },
+                            ])
+                            .setColor(0x94fc03)
+                            .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: ownerInfo.avatarURL })
+                            .setTimestamp();
+            
+            await client.channels.cache.get(guildConfig.channels.errors).send({
+                embeds: [errorEmbeds],
+            });
+            
+            await interaction.channel.send({
+                embeds: [errorEmbeds],
+            });
         }
     }
 }
