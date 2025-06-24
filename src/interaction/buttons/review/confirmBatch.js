@@ -45,7 +45,7 @@ module.exports = {
             const embeds = new EmbedBuilder()
                 .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
                 .setTitle(`Batch Distribution`)
-                .setDescription(`Final step before distribution is done.`)
+                .setDescription(`Are you sure you want to distribute the rewards?`)
                 .addFields([
                     {
                         name: `Batch`,

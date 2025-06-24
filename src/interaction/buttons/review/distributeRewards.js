@@ -18,6 +18,8 @@ module.exports = {
      * @param {Interaction} interaction 
      */
     callback: async(client, interaction, params) => {
+        const start = Date.now();
+
         await interaction.deferUpdate();
 
         const guildConfig = getGuildConfig(interaction.guild.id);
@@ -38,7 +40,9 @@ module.exports = {
 
             const batchDistribution = new RewardDistributor(rewardDataPath, params.batchKey, interaction, client.db);
             await batchDistribution.loadFiles();
+            const dbStart = Date.now();
             const distributionMessages = await batchDistribution.distribute();
+            const dbEnd = Date.now();
             
             const messages = await submissionManager.fetchBatchMessages(params.batchKey);
             
@@ -61,8 +65,12 @@ module.exports = {
 
             await interaction.message.delete().catch(() => {});
 
+            const end = Date.now();
+            const entireDuration = end - start;
+            const dbDuration = dbEnd - dbStart;
+
             await interaction.followUp({
-                content: '✅ Distribution complete.',
+                content: `✅ Distribution complete (Full command:${entireDuration}ms, Distribution only: ${dbDuration}ms).`,
                 flags: MessageFlags.Ephemeral
             });
             

@@ -74,7 +74,7 @@ class BatchReviewer {
         }
 
         return new EmbedBuilder()
-            .setTitle(`Batch Players - Page ${this.currentPage + 1} / ${this.totalPages}`)
+            .setTitle(`Batch ${this.batchKey.split('-')[1]} Players - Page ${this.currentPage + 1} / ${this.totalPages}`)
             .setDescription(`Currently viewing page ${this.currentPage + 1}.`)
             .setColor(0x94fc03)
             .addFields(fields)

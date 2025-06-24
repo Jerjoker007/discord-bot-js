@@ -52,9 +52,9 @@ module.exports = {
 
             if (!batchReviewerInstance.getAllPlayers().length) {
                 
-                await interaction.message.delete();
+                await interaction.message.delete().catch(() => {});
 
-                await interaction.channel.send({
+                await interaction.webhook.send({
                     content: 'The batch is now empty and has been removed.',
                     flags: MessageFlags.Ephemeral
                 });

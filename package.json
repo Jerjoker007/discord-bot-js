@@ -1,5 +1,5 @@
 {
-  "name": "discord-bot-ts",
+  "name": "discord-bot-js",
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
