@@ -1,14 +1,11 @@
 const path = require('path');
+const limiter = require('../../../utils/globalLimiter');
 const rewardDataPath = path.join(__dirname, '../../../data/review/raviRewards.json');
 const { submissionManager } = require('../../../state/globalState');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const RewardDistributor = require('../../../utils/class/RewardDistributor');
 const { getGuildConfig } = require('../../../utils/guildConfig');
 const { ownerInfos } = require('../../../state/globalState');
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 module.exports = {
 
@@ -48,12 +45,18 @@ module.exports = {
             
             for (const message of messages) {
                  try {
-                    const fetchedMessage = await client.channels.cache.get(message.channelId).messages.fetch(message.messageId);
+                    const channel = client.channels.cache.get(message.channelId);
+                    const fetchedMessage = await limiter.schedule(() => 
+                        channel.messages.fetch(message.messageId)
+                    );
             
-                    await fetchedMessage.edit({
-                        content: `✅ This submission's reward has been distributed.`,
-                        components: []
-                    });
+                    await limiter.schedule(() =>
+                        fetchedMessage.edit({
+                            content: `✅ This submission's reward has been distributed.`,
+                            components: []
+                        })
+                    );
+
                 } catch (err) {
                     if (err.code === 10008) {
                         console.warn(`Message ${message.messageId} in channel ${message.channelId} was not found. Skipping.`);
@@ -77,8 +80,9 @@ module.exports = {
             await submissionManager.unmarkBatch(params.batchKey);
             
             for (const message of distributionMessages) {
-                await client.channels.cache.get(guildConfig.channels.receptionist).send(message);
-                await delay(500);
+                await limiter.schedule(() =>
+                    client.channels.cache.get(guildConfig.channels.receptionist).send(message)
+                );
             }
 
         } catch (err) {
@@ -90,7 +94,7 @@ module.exports = {
                             .addFields([
                                 {
                                     name: `🚧Button Used`,
-                                    value: "`batch-confirm`",
+                                    value: "`batch-distribution`",
                                 },
                                 {
                                     name: '📜Error message',

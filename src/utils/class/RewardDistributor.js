@@ -158,7 +158,8 @@ class RewardDistributor {
     const messages = [];
     const usersIds = Object.keys(this.batchData);
 
-    const users = await Promise.all(usersIds.map(id => this.interaction.client.users.fetch(id)));
+    const members = await Promise.all(usersIds.map(id => this.interaction.guild.members.fetch(id)));
+    const users = members.map(member => member.user);
 
     for (let i = 0; i < usersIds.length; i++) {
       const userId = usersIds[i];

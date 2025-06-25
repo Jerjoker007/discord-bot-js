@@ -3,7 +3,6 @@ const { Client, Interaction, MessageFlags } = require('discord.js');
 const { devs } = require('../../../config.json');
 const { decodeCustomId } = require('../../utils/customId');
 const getLocalButtons = require('../../utils/getLocalButtons');
-const { getGuildConfig } = require('../../utils/guildConfig');
 
 /**
  * 

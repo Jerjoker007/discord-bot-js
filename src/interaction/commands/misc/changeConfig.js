@@ -1,5 +1,5 @@
 "use strict" ;
-const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, EmbedBuilder } = require("discord.js");
 const { updateGuildConfig } = require('../../../utils/guildConfig');
 const { ownerInfos } = require('../../../state/globalState');
 

@@ -1,7 +1,6 @@
 "use strict" ;
 const { Client, Interaction, MessageFlags, EmbedBuilder } = require('discord.js');
 const { submissionManager, batchManager, ownerInfos} = require('../../../state/globalState');
-const BatchReviewer = require('../../../utils/class/BatchReviewer');
 const { getGuildConfig } = require('../../../utils/guildConfig');
 module.exports = {
 

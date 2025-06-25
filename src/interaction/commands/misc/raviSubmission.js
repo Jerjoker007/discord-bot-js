@@ -1,6 +1,7 @@
 "use strict";
 const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, MessageFlags } = require('discord.js');
 const { ownerInfos, submissionManager } = require('../../../state/globalState');
+const limiter = require('../../../utils/globalLimiter')
 const { getDbData } = require('../../../utils/db/getDbData');
 const { getGuildConfig } = require('../../../utils/guildConfig');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
@@ -110,8 +111,9 @@ module.exports = {
     
             const attachment = interaction.options.getAttachment('image');
             //Send an interaction to the moderation team
-            const sentMessage = await client.channels.cache.get(guildConfig.channels.review).send({
-                embeds: [new EmbedBuilder()
+            const sentMessage = await limiter.schedule(() =>
+                client.channels.cache.get(guildConfig.channels.review).send({
+                    embeds: [new EmbedBuilder()
                                 .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
                                 .setTitle(`Raviente's Bounty Submission`)
                                 .addFields([
@@ -135,8 +137,9 @@ module.exports = {
                                 .setColor(0x94fc03)
                                 .setTimestamp()
                         ],
-                files: [attachment],
-            });
+                    files: [attachment],
+                })
+            );
     
             //Send a confirmation to the user
             await interaction.editReply({

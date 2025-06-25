@@ -1,5 +1,4 @@
 "use strict";
-const fs = require('fs');
 const path = require('path');
 const { MessageFlags } = require('discord.js');
 const { devs, testers, testServer } = require('../../../config.json');

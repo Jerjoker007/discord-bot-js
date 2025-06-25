@@ -1,5 +1,5 @@
 "use strict";
-const { Client, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require("discord.js");
+const { Client, Interaction } = require("discord.js");
 const { batchManager, ownerInfos } = require('../../../state/globalState');
 const { getGuildConfig } = require('../../../utils/guildConfig');
 
