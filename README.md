@@ -27,7 +27,7 @@ This bot simplifies the submission, review, and logging process of player screen
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Jerjoker007/raviente-bot.git
+   git clone https://github.com/Jerjoker007/discord-bot-js
    cd raviente-bot
 2. **Install dependencies**
    ```bash
