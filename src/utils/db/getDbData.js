@@ -5,7 +5,7 @@ module.exports = {
         const result = await db.query(
             `SELECT d.char_id, c.name 
             FROM discord d
-            LEFT JOIN character c
+            LEFT JOIN characters c
                 ON d.char_id = c.id
             WHERE discord_id = $1`,
             [userId]

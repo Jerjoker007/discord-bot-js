@@ -61,14 +61,34 @@ class RewardDistributor {
     }).format(value);
   }
 
+  formatHex(num, padding) {
+    return num.toString(16).toUpperCase().padStart(padding, "0");
+  }
+
+  toHexString() {
+    const { items } = this.rewardData;
+    //invalidate the opration if no selected item
+    if (items.length === 0) {
+      return
+    }
+    let result = this.formatHex(items.length, 4);
+    for (const item of items) {
+      result += `${this.formatHex(item.type, 2)}0000${this.reverseHex(item.code)}0000${this.formatHex(item.amount, 4)}00000000`;
+    }
+    return result;
+  }
+
   async distributeItems(charIds, rewards, dbTransaction) {
     if (!rewards.items || !rewards.bountyCoins || !rewards.gachaTickets) {
       return;
     }
 
+    const dataString = Buffer.from(this.toHexString(), 'hex');
+
     const charCount = charIds.length;
     const typesArray = Array(charCount).fill(1);
     const botsArray = Array(charCount).fill(false);
+    const dataArray = Array(charCount).fill(dataString);
     const eventNames = Array(charCount).fill('Event BBQ25');
     const descriptions = Array(charCount).fill("~C05 Raviente's Bounty");
 
@@ -85,21 +105,22 @@ class RewardDistributor {
     await dbTransaction.query(
       `
         WITH dist AS (
-          INSERT INTO distribution (char_id, type, bot, event_name, description)
+          INSERT INTO distribution (character_id, type, bot, data, event_name, description)
           SELECT * FROM
-            UNNEST ($1::INT[], $2::INT[], $3::BOOL[], $4::TEXT[], $5::TEXT[])
+            UNNEST ($1::INT[], $2::INT[], $3::BOOL[], $4::BYTEA[], $5::TEXT[], $6::TEXT[])
           RETURNING id
         )
         INSERT INTO distribution_items (distribution_id, item_type, item_id, quantity)
         SELECT dist.id, u.type, u.code, u.amount
         FROM dist
-          CROSS JOIN UNNEST($6::INT[], $7::INT[], $8::INT[])
+          CROSS JOIN UNNEST($7::INT[], $8::INT[], $9::INT[])
           AS u(type, code, amount)
       `,
       [
         charIds,
         typesArray,
         botsArray,
+        dataArray,
         eventNames,
         descriptions,
         itemTypes,
@@ -118,23 +139,23 @@ class RewardDistributor {
         UPDATE discord d SET 
           bounty = d.bounty + (
             CASE
-              WHEN d.title > 4 THEN $2 * 1.4
-              WHEN d.title >= 2 THEN $2 * 1.2
-              WHEN d.title = 1 THEN $2 * 1.1
+              WHEN (d.title & 4) > 0 THEN $2 * 1.4
+              WHEN (d.title & 2) > 0 THEN $2 * 1.2
+              WHEN (d.title & 1) > 0 THEN $2 * 1.1
               ELSE $2
             END
           ),
           gacha = d.gacha + $3,
-          latest_bounty = '4_24'
+          latest_bounty = '4_25'
         FROM (
           SELECT UNNEST($1::text[]) AS discord_id
         ) AS data
         WHERE d.discord_id = data.discord_id
         RETURNING d.discord_id, d.title,
           CASE
-            WHEN d.title > 4 THEN  0.4
-            WHEN d.title >= 2 THEN 0.2
-            WHEN d.title = 1 THEN 0.1
+            WHEN (d.title & 4) > 0 THEN  0.4
+            WHEN (d.title & 2) > 0 THEN 0.2
+            WHEN (d.title & 1) > 0 THEN 0.1
             ELSE 0.0
           END AS bc_multiplier
       `,
