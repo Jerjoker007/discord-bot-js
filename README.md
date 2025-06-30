@@ -18,7 +18,7 @@ This bot simplifies the submission, review, and logging process of player screen
 - 🛠️ `/ravi-config channel`  
   Sets up the 3 channels used by the bot:
   - **Receptionist Channel** → where players submit their screenshot and in which batch they participated
-  - **Review Channel** → where admins evaluate each batche
+  - **Review Channel** → where admins evaluate each batch
   - **Error Channel** → for bot execution and database error logs
 
 ---
@@ -125,7 +125,7 @@ The bot requires the following permissions:
 ---
 
 🧊 Future Plans
-- None for now (until my "boss" ask for more feature)
+- New command to change the database IP from the discord server.
 
 ---
 
