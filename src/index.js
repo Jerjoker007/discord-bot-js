@@ -2,10 +2,13 @@
 require('dotenv').config();
 const { Client, IntentsBitField } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
-const { pool, testConnection } = require('./utils/dbConnection');
+const { getPool, testConnection } = require('./utils/dbConnection');
 
 (async () => {
-    await testConnection()
+    const pool = await getPool();
+    if (!await testConnection()) {
+        console.log('[Bot] Launching bot with no database.');
+    }
 
     const client = new Client({
         intents: [

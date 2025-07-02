@@ -1,9 +1,9 @@
 "use strict";
-const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, MessageFlags } = require('discord.js');
+const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, MessageFlags, flatten } = require('discord.js');
 const { ownerInfos, submissionManager } = require('../../../state/globalState');
 const limiter = require('../../../utils/globalLimiter')
 const { getDbData } = require('../../../utils/db/getDbData');
-const { getGuildConfig } = require('../../../utils/guildConfig');
+const { getGuildConfig } = require('../../../utils/configManager');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
 module.exports = {
     /**
@@ -13,7 +13,7 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const guildConfig = getGuildConfig(interaction.guild.id);
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
@@ -29,6 +29,46 @@ module.exports = {
 
             const ownerInfo = await ownerInfos.get(client);
     
+            //Testing the connection to the database
+            let connection = null;
+            try {
+                connection = await client.db.connect();
+            } catch (error) {
+                const errorEmbeds = new EmbedBuilder()
+                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                .setThumbnail(client.user.displayAvatarURL())
+                .setTitle(`🛑 Error Occured 🛑`)
+                .setDescription(`The connection to the database is flawed`)
+                .addFields([
+                    {
+                        name: `🚧Command Used`,
+                        value: "`/ravi-submit`",
+                    },
+                    {
+                        name: '📜Error message',
+                        value: ">>> The connection to the database seems to be flawed, contact the admins or the bot's owner",
+                    },
+                    {
+                        name: `⛑ Author's advice`,
+                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
+                    },
+                ])
+                .setColor(15844367)
+                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                .setTimestamp()
+                await interaction.editReply({
+                    embeds: [errorEmbeds],
+                });
+                await client.channels.cache.get(guildConfig.channels.errors).send({
+                    embeds: [errorEmbeds],
+                });
+
+                return;
+
+            } finally {
+                if (connection) connection.release();
+            }
+            
             //Select in the database (discord table) the character_id, bounty & gacha to move ahead.
             const dbData = await getDbData(client.db, interaction.member.id);
     
@@ -36,6 +76,7 @@ module.exports = {
                 await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setThumbnail(client.user.displayAvatarURL())
                                 .setTitle(`🛑 Error Occured 🛑`)
                                 .setDescription(`You don't seem to be binded correctly`)
                                 .addFields([
@@ -46,6 +87,10 @@ module.exports = {
                                     {
                                         name: '📜Error message',
                                         value: ">>> You don't seem to be correctly binded or haven't selected a main character, use `/card` and follow the error's instruction.\nOnce done come back and resubmit.",
+                                    },
+                                    {
+                                        name: `⛑ Author's advice`,
+                                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
                                     },
                                 ])
                                 .setColor(15844367)
@@ -63,6 +108,7 @@ module.exports = {
                 await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setThumbnail(client.user.displayAvatarURL())
                                 .setTitle(`🛑 Error Occured 🛑`)
                                 .setDescription(`You need to send an image`)
                                 .addFields([
@@ -74,11 +120,15 @@ module.exports = {
                                         name: '📜Error message',
                                         value: ">>> You most likely did not sent an image.",
                                     },
+                                    {
+                                        name: `⛑ Author's advice`,
+                                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
+                                    },
                                 ])
                                 .setColor(15844367)
                                 .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
                                 .setTimestamp()
-                            ],
+                    ],
                 });
     
                 return;
@@ -89,6 +139,7 @@ module.exports = {
                 await interaction.editReply({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setThumbnail(client.user.displayAvatarURL())
                                 .setTitle(`🛑 Error Occured 🛑`)
                                 .setDescription(`You have already submitted a bounty`)
                                 .addFields([
@@ -100,11 +151,15 @@ module.exports = {
                                         name: '📜Error message',
                                         value: ">>> You most likely already sent a submission.",
                                     },
+                                    {
+                                        name: `⛑ Author's advice`,
+                                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
+                                    },
                                 ])
                                 .setColor(15844367)
                                 .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
                                 .setTimestamp()
-                            ],
+                    ],
                 });
                 return;
             }
@@ -141,8 +196,12 @@ module.exports = {
                 })
             );
     
-            //Send a confirmation to the user
             await interaction.editReply({
+                content: 'Easter egg time...'
+            });
+            await interaction.deleteReply();
+            //Send a confirmation to the user
+            await interaction.followUp({
                 content: `Your bounty in **Batch ${interaction.options.get('batch').value}** is submitted`,
                 files: [attachment]
             });
@@ -194,7 +253,7 @@ module.exports = {
 
     name: 'ravi-submit',
     description: `Submission for the Raviente's raid event`,
-    testing: true,
+    testing: false,
     // testOnly: Boolean,
     options: [
         {

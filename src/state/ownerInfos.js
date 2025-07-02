@@ -9,7 +9,7 @@ module.exports = {
         const owner = client.application.owner;
 
 
-        if (!(owner instanceof User)) throw new Error('Unable to determine bot owner.');
+        if (!(owner instanceof User)) throw new Error('[Owner Infos] Unable to determine bot owner.');
 
         cachedOwnerInfo = {
             username: owner.username,

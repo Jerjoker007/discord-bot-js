@@ -1,4 +1,4 @@
 "use strict";
 module.exports = (client) => {
-    console.log(`${client.user.tag} is online.`);
+    console.log(`[Bot] ${client.user.tag} is online.`);
 };

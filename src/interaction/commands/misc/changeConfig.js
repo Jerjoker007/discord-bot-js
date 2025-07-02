@@ -1,6 +1,7 @@
 "use strict" ;
 const { Client, Interaction, ApplicationCommandOptionType, MessageFlags, EmbedBuilder } = require("discord.js");
-const { updateGuildConfig } = require('../../../utils/guildConfig');
+const { createPool, getPool, testConnection } = require('../../../utils/dbConnection');
+const { updateGuildConfig, updateConfig } = require('../../../utils/configManager');
 const { ownerInfos } = require('../../../state/globalState');
 
 module.exports = {
@@ -14,19 +15,47 @@ module.exports = {
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
         const ownerInfo = await ownerInfos.get(client);
         try {
-            const guildId = interaction.guildId;
+            const subcommand = interaction.options.getSubcommand();
+
+            if (subcommand === 'channel') {
+                const guildId = interaction.guildId;
+        
+                const type = interaction.options.getString('type');
+                const channel = interaction.options.getChannel('channel');
+        
+                updateGuildConfig(guildId, (cfg) => {
+                    cfg.channels[type] = channel.id;
+                });
+        
+                await interaction.reply({
+                    content: `✅ Channel for **${type}** set to <#${channel.id}>.`,
+                    flags: MessageFlags.Ephemeral
+                });
+
+            } else if (subcommand === 'database') {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                const type = interaction.options.getString('type');
+                const dataString = interaction.options.getString('data');
+
+                updateConfig((cfg) => {
+                    cfg[type] = dataString;
+                });
+
+                await createPool();
+                const isConnected = await testConnection();
+                client.db = await getPool();
+
+                if (isConnected) {
     
-            const type = interaction.options.getString('type');
-            const channel = interaction.options.getChannel('channel')
-    
-            updateGuildConfig(guildId, (cfg) => {
-                cfg.channels[type] = channel.id;
-            });
-    
-            await interaction.reply({
-                content: `✅ Channel for **${type}** set to <#${channel.id}>.`,
-                flags: MessageFlags.Ephemeral
-            });
+                    return await interaction.editReply({
+                        content: `✅ Database IP is now set to **${dataString}** and connection to it was restarted.`,
+                    });
+                } else {
+                    return await interaction.editReply({
+                        content: `⚠️ Database IP is now set to **${dataString}** but was unnable to connect to it. You will either have to restart the bot or change the IP with the same command.`,
+                    });
+                }
+            }
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
                 .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
@@ -58,7 +87,7 @@ module.exports = {
     },
 
     name: 'ravi-config',
-    description: `Configure server settings.`,
+    description: `Configure server and database settings.`,
     devOnly: true,
     options: [
         {
@@ -81,6 +110,28 @@ module.exports = {
                     name: 'channel',
                     description: 'The channel to assign.',
                     type: ApplicationCommandOptionType.Channel,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: 'database',
+            description: 'Change the database configs for the bot.',
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+                {
+                    name: 'type',
+                    description: 'What data to configure.',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        { name: 'Host', value: 'databaseIP'},
+                    ]
+                },
+                {
+                    name: 'data',
+                    description: 'The data to assign.',
+                    type: ApplicationCommandOptionType.String,
                     required: true
                 }
             ]

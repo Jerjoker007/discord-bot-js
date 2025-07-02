@@ -1,9 +1,9 @@
 "use strict";
 const path = require('path');
 const { MessageFlags } = require('discord.js');
-const { devs, testers, testServer } = require('../../../config.json');
+const { devs, testerRoles, testServer } = require('../../../config.json');
 const getLocalCommands = require('../../utils/getLocalCommands');
-const { getGuildConfig } = require('../../utils/guildConfig');
+const { getGuildConfig } = require('../../utils/configManager');
 
 module.exports = async (client, interaction) => {
     if (!interaction.isChatInputCommand()) return;
@@ -25,7 +25,7 @@ module.exports = async (client, interaction) => {
             }
         }
         if (commandObject.testing) {
-            if (!interaction.member.roles.cache.has(testers)) {
+            if (!interaction.member.roles.cache.has(testerRoles)) {
                 return interaction.reply({
                     content: 'Only testers are allowed to run this command.',
                     flags: MessageFlags.Ephemeral,

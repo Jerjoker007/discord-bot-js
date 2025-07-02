@@ -15,9 +15,9 @@ function loadBatches() {
                 const batchReviewerInstance = new BatchReviewer(batchKey, batchData.user, batchData.currentPage);
                 batchManager.set(batchKey, batchReviewerInstance);
             }
-            console.log(`Loaded ${batchManager.size} batches from disk.`);
+            console.log(`[Batch Manager] Loaded ${batchManager.size} batches from disk.`);
         } catch (err) {
-            console.error('Failed to load batches from disk:', err);
+            console.error('[Batch Manager] Failed to load batches from disk:', err);
         }
     }
 }

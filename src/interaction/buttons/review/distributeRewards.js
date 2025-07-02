@@ -4,7 +4,7 @@ const rewardDataPath = path.join(__dirname, '../../../data/review/raviRewards.js
 const { submissionManager } = require('../../../state/globalState');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
 const RewardDistributor = require('../../../utils/class/RewardDistributor');
-const { getGuildConfig } = require('../../../utils/guildConfig');
+const { getGuildConfig } = require('../../../utils/configManager');
 const { ownerInfos } = require('../../../state/globalState');
 
 module.exports = {
@@ -73,7 +73,7 @@ module.exports = {
             const dbDuration = dbEnd - dbStart;
 
             await interaction.followUp({
-                content: `✅ Distribution complete (Full command:${entireDuration}ms, Distribution only: ${dbDuration}ms).`,
+                content: `✅ Distribution complete (Full command: ${entireDuration}ms, Distribution only: ${dbDuration}ms).`,
                 flags: MessageFlags.Ephemeral
             });
             

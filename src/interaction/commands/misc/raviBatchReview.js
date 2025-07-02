@@ -8,7 +8,7 @@ const { Interaction,
 const { batchManager, submissionManager } = require('../../../state/globalState');
 const BatchReviewer = require('../../../utils/class/BatchReviewer');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
-const { getGuildConfig } = require('../../../utils/guildConfig');
+const { getGuildConfig } = require('../../../utils/configManager');
 const { ownerInfos } = require('../../../state/globalState');
 
 module.exports = {
