@@ -94,7 +94,7 @@ module.exports = {
                     },
                     {
                         name: `⛑ Author's advice`,
-                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
+                        value: "```Error is written by the bot itself, please read the message carefully and contact the bot's owner```",
                     },
                 ])
                 .setColor(0x94fc03)
@@ -107,6 +107,7 @@ module.exports = {
 
             await interaction.message.edit({
                 content: '🛑 Error Occured, check with moderators 🛑',
+                embeds: [errorEmbeds],
                 components: [] // Disable buttons to prevent further interactions if relevant
             });
         }

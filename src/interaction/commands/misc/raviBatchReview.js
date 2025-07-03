@@ -1,10 +1,5 @@
 "use strict";
-const { Interaction, 
-    ApplicationCommandOptionType, 
-    Client,
-    EmbedBuilder,
-    MessageFlags
-} = require('discord.js');
+const { Interaction, ApplicationCommandOptionType, Client, EmbedBuilder, MessageFlags } = require('discord.js');
 const { batchManager, submissionManager } = require('../../../state/globalState');
 const BatchReviewer = require('../../../utils/class/BatchReviewer');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
@@ -85,7 +80,7 @@ module.exports = {
                     },
                     {
                         name: `⛑ Author's advice`,
-                        value: "```Error is written by the bot itself, please read the message carefully and contact```",
+                        value: "```Error is written by the bot itself, please read the message carefully and contact the bot's owner```",
                     },
                 ])
                 .setColor(0x94fc03)

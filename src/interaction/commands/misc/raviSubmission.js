@@ -1,5 +1,5 @@
 "use strict";
-const { Interaction, ApplicationCommandOptionType, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, MessageFlags, flatten } = require('discord.js');
+const { Interaction, ApplicationCommandOptionType,  Client, EmbedBuilder, MessageFlags } = require('discord.js');
 const { ownerInfos, submissionManager } = require('../../../state/globalState');
 const limiter = require('../../../utils/globalLimiter')
 const { getDbData } = require('../../../utils/db/getDbData');
@@ -50,7 +50,7 @@ module.exports = {
                     },
                     {
                         name: `⛑ Author's advice`,
-                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
+                        value: "```Error is written by the bot itself, please read the message carefully and contact the bot's owner```",
                     },
                 ])
                 .setColor(15844367)

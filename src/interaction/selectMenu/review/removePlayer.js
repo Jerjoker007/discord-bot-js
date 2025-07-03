@@ -87,7 +87,7 @@ module.exports = {
                                 },
                                 {
                                     name: `⛑ Author's advice`,
-                                    value: "```Error is written by the bot itself, please read the message carefully and contact```",
+                                    value: "```Error is written by the bot itself, please read the message carefully and contact the bot's owner```",
                                 },
                             ])
                             .setColor(0x94fc03)
