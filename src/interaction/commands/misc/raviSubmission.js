@@ -13,7 +13,7 @@ module.exports = {
      */
     callback: async (client, interaction) => {
 
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.deferReply();
 
         const guildConfig = getGuildConfig(interaction.guild.id);
         const userAvatarUrl = interaction.member.user.displayAvatarURL();
@@ -196,12 +196,8 @@ module.exports = {
                 })
             );
     
-            await interaction.editReply({
-                content: 'Easter egg time...'
-            });
-            await interaction.deleteReply();
             //Send a confirmation to the user
-            await interaction.followUp({
+            await interaction.editReply({
                 content: `Your bounty in **Batch ${interaction.options.get('batch').value}** is submitted`,
                 files: [attachment]
             });
