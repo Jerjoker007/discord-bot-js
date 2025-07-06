@@ -3,12 +3,12 @@ const { batchManager } = require('../../../state/globalState');
 const { getGuildConfig } = require('../../../utils/configManager');
 const { encodeCustomId } = require('../../../utils/customId');
 const { ownerInfos } = require('../../../state/globalState');
-const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, ButtonStyle } = require('discord.js');
+const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
 
-    name: 'batch-confirm',
-    description: 'Confirm the batch and send confirmation interaction',
+    name: 'batch-delay',
+    description: 'Delay the batch reviewing',
 
     /**
      * 
@@ -42,39 +42,11 @@ module.exports = {
 
             await batchManager.deleteBatch(params.batchKey);
 
-            const embeds = new EmbedBuilder()
-                .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
-                .setTitle(`Batch Distribution`)
-                .setDescription(`Are you sure you want to distribute the rewards?`)
-                .addFields([
-                    {
-                        name: `Batch`,
-                        value: `Batch ${params.batchKey.split('-')[1]}`
-                    }
-                ])
-                .setColor(15844367)
-                .setTimestamp();
+            await interaction.message.delete().catch(() => {});
 
-            const confirmationRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-                    .setCustomId(`${encodeCustomId(
-                    'ravi',
-                    'batch-distribution',
-                    {
-                        batchKey: params.batchKey,
-                        interactionUserId: params.interactionUserId,
-                    }
-                    )}`)
-                    .setLabel('Distribute')
-                    .setStyle(ButtonStyle.Success)
-            );
             await interaction.followUp({
-                embeds:[embeds],
-                components: [confirmationRow]
-            })
-
-            await interaction.message.edit({
-                content: '✅ This batch has been reviewed.'
+                content: '⚠️ This batch has been delayed.',
+                flags: MessageFlags.Ephemeral
             });
 
         } catch (err) {
@@ -86,7 +58,7 @@ module.exports = {
                 .addFields([
                     {
                         name: `🚧Button Used`,
-                        value: "`batch-confirm`",
+                        value: "`batch-delay`",
                     },
                     {
                         name: '📜Error message',

@@ -131,6 +131,18 @@ class BatchReviewer {
                 )}`)
                 .setLabel('Confirm')
                 .setStyle(ButtonStyle.Success),
+            
+            new ButtonBuilder()
+                .setCustomId(`${encodeCustomId(
+                    'ravi',
+                    'batch-delay',
+                    {
+                        batchKey: `${this.batchKey}`,
+                        interactionUserId: `${this.interactionUser.id}`,
+                    }
+                )}`)
+                .setLabel('Delay')
+                .setStyle(ButtonStyle.Danger),
 
             new ButtonBuilder()
                 .setCustomId(`${encodeCustomId(
