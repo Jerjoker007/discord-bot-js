@@ -40,6 +40,11 @@ module.exports = {
             const dbStart = Date.now();
             const distributionMessages = await batchDistribution.distribute();
             const dbEnd = Date.now();
+
+            await interaction.message.edit({
+                content: '🔄 Distribution done — handling messages now. This may take a few minutes, please wait…',
+                components
+            });
             
             const messages = await submissionManager.fetchBatchMessages(params.batchKey);
             
