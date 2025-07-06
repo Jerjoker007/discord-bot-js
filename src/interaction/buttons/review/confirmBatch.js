@@ -1,6 +1,6 @@
 "use strict";
 const { batchManager } = require('../../../state/globalState');
-const { getGuildConfig } = require('../../../utils/guildConfig');
+const { getGuildConfig } = require('../../../utils/configManager');
 const { encodeCustomId } = require('../../../utils/customId');
 const { ownerInfos } = require('../../../state/globalState');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, ButtonStyle } = require('discord.js');
