@@ -1,7 +1,7 @@
 "use strict";
 const { Interaction, ApplicationCommandOptionType,  Client, EmbedBuilder, MessageFlags } = require('discord.js');
 const { ownerInfos, submissionManager } = require('../../../state/globalState');
-const limiter = require('../../../utils/globalLimiter')
+const { sendLimiter } = require('../../../utils/globalLimiter')
 const { getDbData } = require('../../../utils/db/getDbData');
 const { getGuildConfig } = require('../../../utils/configManager');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
@@ -166,7 +166,7 @@ module.exports = {
     
             const attachment = interaction.options.getAttachment('image');
             //Send an interaction to the moderation team
-            const sentMessage = await limiter.schedule(() =>
+            const sentMessage = await sendLimiter.schedule(() =>
                 client.channels.cache.get(guildConfig.channels.review).send({
                     embeds: [new EmbedBuilder()
                                 .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})

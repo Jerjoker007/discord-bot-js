@@ -1,11 +1,22 @@
 const Bottleneck = require('bottleneck');
 
-const globalLimiter = new Bottleneck({
+const editLimiter = new Bottleneck({
     minTime: 250,
     maxConcurrent: 1,
-    reservoir: 45,
-    reservoirRefreshAmount: 45,
+    reservoir: 60,
+    reservoirRefreshAmount: 60,
     reservoirRefreshInterval: 10000
 });
 
-module.exports = globalLimiter;
+const sendLimiter = new Bottleneck({
+    minTime: 250,
+    maxConcurrent: 1,
+    reservoir: 60,
+    reservoirRefreshAmount: 60,
+    reservoirRefreshInterval: 10000
+});
+
+module.exports = { 
+    editLimiter, 
+    sendLimiter 
+};

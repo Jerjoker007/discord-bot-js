@@ -175,7 +175,8 @@ class RewardDistributor {
     }
   }
 
-  async createBountyMessage( rewards) {
+  async createBountyMessage() {
+    const rewards = this.getRewardData();
     const messages = [];
     const usersIds = Object.keys(this.batchData);
 
@@ -223,9 +224,6 @@ class RewardDistributor {
       throw new Error('Missing user, reward data or character.');
     }
 
-    console.log("Distributing to users:", this.getUserIds());
-    console.log("With rewards:", rewards);
-
     const dbTransaction = await this.db.connect();
     try {
       await dbTransaction.query('BEGIN');
@@ -243,7 +241,7 @@ class RewardDistributor {
     } finally {
       dbTransaction.release();
     }
-    return await this.createBountyMessage(rewards);
+    return;
   }
 }
 

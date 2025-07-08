@@ -1,5 +1,5 @@
 const path = require('path');
-const limiter = require('../../../utils/globalLimiter');
+const { editLimiter, sendLimiter } = require('../../../utils/globalLimiter');
 const rewardDataPath = path.join(__dirname, '../../../data/review/raviRewards.json');
 const { submissionManager } = require('../../../state/globalState');
 const { Client, Interaction, ActionRowBuilder, ButtonBuilder, EmbedBuilder, MessageFlags } = require("discord.js");
@@ -37,8 +37,9 @@ module.exports = {
 
             const batchDistribution = new RewardDistributor(rewardDataPath, params.batchKey, interaction, client.db);
             await batchDistribution.loadFiles();
+
             const dbStart = Date.now();
-            const distributionMessages = await batchDistribution.distribute();
+            await batchDistribution.distribute();
             const dbEnd = Date.now();
 
             await interaction.message.edit({
@@ -46,16 +47,15 @@ module.exports = {
                 components
             });
             
-            const messages = await submissionManager.fetchBatchMessages(params.batchKey);
+            const distributionMessages = await batchDistribution.createBountyMessage();
+            const submissionMessages = await submissionManager.fetchBatchMessages(params.batchKey);
             
-            for (const message of messages) {
+            for (const message of submissionMessages) {
                  try {
                     const channel = client.channels.cache.get(message.channelId);
-                    const fetchedMessage = await limiter.schedule(() => 
-                        channel.messages.fetch(message.messageId)
-                    );
+                    const fetchedMessage = await channel.messages.fetch(message.messageId);
             
-                    await limiter.schedule(() =>
+                    await editLimiter.schedule(() =>
                         fetchedMessage.edit({
                             content: `✅ This submission's reward has been distributed.`,
                             components: []
@@ -71,6 +71,12 @@ module.exports = {
                 }
             }
 
+            for (const message of distributionMessages) {
+                await sendLimiter.schedule(() =>
+                    client.channels.cache.get(guildConfig.channels.receptionist).send(message)
+                );
+            }
+
             await interaction.message.delete().catch(() => {});
 
             const end = Date.now();
@@ -84,12 +90,6 @@ module.exports = {
             
             await submissionManager.unmarkBatch(params.batchKey);
             
-            for (const message of distributionMessages) {
-                await limiter.schedule(() =>
-                    client.channels.cache.get(guildConfig.channels.receptionist).send(message)
-                );
-            }
-
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
                             .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl})
