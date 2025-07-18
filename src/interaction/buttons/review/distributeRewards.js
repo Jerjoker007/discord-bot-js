@@ -49,9 +49,9 @@ module.exports = {
             
             const distributionMessages = await batchDistribution.createBountyMessage();
             const submissionMessages = await submissionManager.fetchBatchMessages(params.batchKey);
-            
-            for (const message of submissionMessages) {
-                 try {
+
+            const editTasks = submissionMessages.map(async (message) => {
+                try {
                     const channel = client.channels.cache.get(message.channelId);
                     const fetchedMessage = await channel.messages.fetch(message.messageId);
             
@@ -69,13 +69,14 @@ module.exports = {
                         console.error(`Error updating message ${message.messageId}:`, err);
                     }
                 }
-            }
-
-            for (const message of distributionMessages) {
+            });
+            const sendTasks = distributionMessages.map(async (message) => {
                 await sendLimiter.schedule(() =>
                     client.channels.cache.get(guildConfig.channels.receptionist).send(message)
                 );
-            }
+            });
+
+            await Promise.all([...editTasks, ...sendTasks]);
 
             await interaction.message.delete().catch(() => {});
 
