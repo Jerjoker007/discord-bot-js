@@ -25,26 +25,23 @@ module.exports = {
             const err = validateCommandAccess(interaction, guildConfig.channels?.review, guildConfig);
             if (err) {
                 return await interaction.editReply({
-                    content: `❌ ${err}`,
-                    flags: MessageFlags.Ephemeral
+                    content: `❌ ${err}`
                 });
             }
     
             const batchKey = `batch-${interaction.options.get('batch').value}`;
     
             if (await batchManager.fetchBatch(batchKey)) {
-                return interaction.editReply({
-                    content: `⚠️ This batch is already being reviewed.`,
-                    flags: MessageFlags.Ephemeral
+                return await interaction.editReply({
+                    content: `⚠️ This batch is already being reviewed.`
                 });
             }
     
             const players = await submissionManager.fetchBatch(batchKey);
     
             if (Object.keys(players).length < 1) {
-                return interaction.editReply({
-                    content: `❌ This batch is empty and cannot be reviewed.`,
-                    flags: MessageFlags.Ephemeral
+                return await interaction.editReply({
+                    content: `❌ This batch is empty and cannot be reviewed.`
                 });
             }
     
@@ -63,6 +60,7 @@ module.exports = {
             });
     
             await batchManager.addBatch(batchKey, batchReviewerInstance);
+            
         } catch (err) {
             const errorEmbeds = new EmbedBuilder()
                 .setAuthor({name: interaction.member.user.username, iconURL: userAvatarUrl })

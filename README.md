@@ -104,7 +104,7 @@ src/
 │   ├── getLocalButtons.js
 │   ├── getLocalCommands.js
 │   ├── getLocalSelectMenu.js
-│   └── guildConfig.js
+│   └── configManager.js
 index.js
 .env
 config.json
