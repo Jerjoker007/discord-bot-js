@@ -53,14 +53,14 @@ module.exports = {
             const editTasks = submissionMessages.map(async (message) => {
                 try {
                     const channel = client.channels.cache.get(message.channelId);
-                    const fetchedMessage = await channel.messages.fetch(message.messageId);
-            
-                    await editLimiter.schedule(() =>
-                        fetchedMessage.edit({
+                    
+                    await editLimiter.schedule(async () => {
+                        const fetchedMessage = await channel.messages.fetch(message.messageId);
+                        await fetchedMessage.edit({
                             content: `✅ This submission's reward has been distributed.`,
                             components: []
-                        })
-                    );
+                        });
+                    });
 
                 } catch (err) {
                     if (err.code === 10008) {
