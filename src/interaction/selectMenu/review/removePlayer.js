@@ -28,11 +28,24 @@ module.exports = {
             if (message) {
                 try {
                     const fetchedMessage = await client.channels.cache.get(message.channelId).messages.fetch(message.messageId);
-                    
-                    await fetchedMessage.edit({
-                        content: `❌ This submission has been rejected.`,
-                    });
-                    
+
+                    const content = `❌ This submission has been rejected.`;
+                    const [oldEmbed] = fetchedMessage.embeds;
+
+                    if (oldEmbed) {
+                        const newEmbed = EmbedBuilder.from(oldEmbed).setColor(0xFF0000);
+
+                        await fetchedMessage.edit({
+                            content,
+                            embeds: [newEmbed],
+                        });
+
+                    } else {
+                        await fetchedMessage.edit({
+                            content,
+                        });
+                    }
+
                 } catch (err) {
                     if (err.code === 10008) {
                         console.warn(`Message ${message.messageId} in channel ${message.channelId} was not found. Skipping.`);
