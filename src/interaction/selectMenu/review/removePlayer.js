@@ -29,7 +29,7 @@ module.exports = {
                 try {
                     const fetchedMessage = await client.channels.cache.get(message.channelId).messages.fetch(message.messageId);
 
-                    const content = `## ❌ This submission has been rejected.`;
+                    const content = `### ❌ This submission has been rejected.`;
 
                     await fetchedMessage.edit({
                         content,
