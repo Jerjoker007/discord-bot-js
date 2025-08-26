@@ -125,7 +125,7 @@ The bot requires the following permissions:
 ---
 
 🧊 Future Plans
-- New command to change the database IP from the discord server.
+- No future plan
 
 ---
 
