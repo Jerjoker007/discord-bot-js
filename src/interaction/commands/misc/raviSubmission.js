@@ -5,6 +5,7 @@ const { sendLimiter } = require('../../../utils/globalLimiter')
 const { getDbData } = require('../../../utils/db/getDbData');
 const { getGuildConfig } = require('../../../utils/configManager');
 const { validateCommandAccess } = require('../../../utils/commandAccess');
+const { bountyBanRole } = require('../../../../config.json')
 module.exports = {
     /**
      *
@@ -134,6 +135,35 @@ module.exports = {
                 return;
             }
             
+            if (interaction.member.roles.cache.has(bountyBanRole)) {
+                await interaction.editReply({
+                    embeds: [new EmbedBuilder()
+                                .setAuthor({name: `${interaction.member.user.username}`, iconURL: `${userAvatarUrl}`})
+                                .setThumbnail(client.user.displayAvatarURL())
+                                .setTitle(`🛑 Error Occured 🛑`)
+                                .setDescription(`You are under a bounty ban`)
+                                .addFields([
+                                    {
+                                        name: `🚧Command Used`,
+                                        value: "`/ravi-submit`",
+                                    },
+                                    {
+                                        name: '📜Error message',
+                                        value: ">>> You were banned from submitting any bounty (you have the Bounty Ban role).",
+                                    },
+                                    {
+                                        name: `⛑ Author's advice`,
+                                        value: "```Error is written by the bot's owner himself, please read the message carefully and consult```",
+                                    },
+                                ])
+                                .setColor(15844367)
+                                .setFooter({ text: `You can consult this to ${ ownerInfo.username }`, iconURL: `${ ownerInfo.avatarURL }`})
+                                .setTimestamp()
+                    ],
+                });
+                return;
+            }
+
             //Check if the user already submitted a bounty
             if (await submissionManager.hasUserSubmitted(interaction.member.id)) {
                 await interaction.editReply({
