@@ -22,7 +22,6 @@ This bot simplifies the submission, review, and logging process of player screen
   - **Error Channel** → for bot execution and database error logs
 
 - 🛠️ `/ravi-config database`  
-  Sets up the 3 channels used by the bot:
   - **Host** → IP of the postgres database
  
 ---
