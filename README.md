@@ -31,7 +31,7 @@ This bot simplifies the submission, review, and logging process of player screen
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Jerjoker007/discord-bot-js
-   cd raviente-bot
+   cd discord-bot-js
 2. **Install dependencies**
    ```bash
    npm install
@@ -43,7 +43,6 @@ This bot simplifies the submission, review, and logging process of player screen
    GUILD_ID=your_guild_id
    CLIENT_ID=your_client_id
    DB_USER=your_postgres_username
-   DB_HOST=your_postgres_host
    DB_NAME=your_postgres_database_name
    DB_PASSWORD=your_postgres_password
    DB_PORT=your_postgres_port
